@@ -1,5 +1,6 @@
-﻿use bevy::prelude::{App, Plugin, Resource, Update, World};
-use bevy_easy_compute::prelude::{AppComputeWorker, AppComputeWorkerPlugin, ComputeWorker};
+﻿use bevy::math::Vec3;
+use bevy::prelude::{App, Plugin, Resource, Update, World};
+use bevy_easy_compute::prelude::{AppComputeWorker, AppComputeWorkerBuilder, AppComputeWorkerPlugin, ComputeWorker};
 use crate::compute::asteroid_height_compute_shader::AsteroidHeightComputeShader;
 use crate::compute::event_handler;
 use crate::compute::event_handler::HeightsAfterCompute;
