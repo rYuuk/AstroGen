@@ -2,7 +2,7 @@
 use bevy::reflect::{DynamicStruct, Reflect};
 use sickle_ui::prelude::{LabelConfig, SetBackgroundColorExt, SetJustifyContentExt, SetWidthExt, Slider, SliderConfig, UiColumnExt, UiContainerExt, UiLabelExt, UiSliderExt};
 use sickle_ui::ui_builder::UiBuilder;
-use crate::crater_settings::CraterSettings;
+use crate::settings::crater_settings::CraterSettings;
 
 pub struct CraterSettingPlugin;
 

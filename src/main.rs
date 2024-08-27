@@ -9,27 +9,21 @@ use sickle_ui::SickleUiPlugin;
 use sickle_ui::ui_builder::{UiBuilderExt, UiRoot};
 
 use compute::asteroid_terrain_generator::AsteroidGeneratorPlugin;
-use simple_noise_setting_widget::SimpleNoisePlugin;
 use sphere_mesh::SphereMesh;
 
 use crate::compute::event_handler::HeightsAfterCompute;
-use crate::crater_setting_widget::{CraterSettingPlugin, CraterSettingWidgetExt};
 use crate::light::LightPlugin;
 use crate::main_camera::MainCameraPlugin;
-use crate::ridge_noise_setting_widget::{RidgeNoisePlugin, RidgeNoiseSettingWidgetExt};
-use crate::simple_noise_setting_widget::SimpleNoiseWidgetExt;
+use crate::ui_widgets::crater_setting_widget::{CraterSettingPlugin, CraterSettingWidgetExt};
+use crate::ui_widgets::ridge_noise_setting_widget::{RidgeNoisePlugin, RidgeNoiseSettingWidgetExt};
+use crate::ui_widgets::simple_noise_setting_widget::{SimpleNoisePlugin, SimpleNoiseWidgetExt};
 
 mod compute;
+mod settings;
+mod ui_widgets;
 mod sphere_mesh;
-mod simple_noise_setting_widget;
-
-mod simple_noise_settings;
-mod ridge_noise_settings;
-mod ridge_noise_setting_widget;
 
 mod utils;
-mod crater_settings;
-mod crater_setting_widget;
 mod main_camera;
 mod light;
 #[derive(Component)]

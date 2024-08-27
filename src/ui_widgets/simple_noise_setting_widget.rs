@@ -2,7 +2,7 @@
 use bevy::reflect::{DynamicStruct, Reflect, Typed, TypeInfo};
 use sickle_ui::prelude::{LabelConfig, SetBackgroundColorExt, SetJustifyContentExt, SetWidthExt, Slider, SliderConfig, UiColumnExt, UiContainerExt, UiLabelExt, UiSliderExt};
 use sickle_ui::ui_builder::UiBuilder;
-use crate::simple_noise_settings::SimpleNoiseSettings;
+use crate::settings::simple_noise_settings::SimpleNoiseSettings;
 
 pub struct SimpleNoisePlugin;
 

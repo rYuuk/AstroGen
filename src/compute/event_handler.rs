@@ -2,9 +2,9 @@
 use bevy_easy_compute::prelude::AppComputeWorker;
 use crate::compute::asteroid_terrain_generator::AsteroidComputeWorker;
 use crate::RngSeed;
-use crate::crater_setting_widget::CraterSettingsChanged;
-use crate::ridge_noise_setting_widget::RidgeNoiseSettingsChanged;
-use crate::simple_noise_setting_widget::SimpleNoiseSettingsChanged;
+use crate::ui_widgets::crater_setting_widget::CraterSettingsChanged;
+use crate::ui_widgets::ridge_noise_setting_widget::RidgeNoiseSettingsChanged;
+use crate::ui_widgets::simple_noise_setting_widget::SimpleNoiseSettingsChanged;
 use crate::utils::PRNG;
 
 #[derive(Event)]
