@@ -1,17 +1,21 @@
 ﻿use bevy::asset::AssetContainer;
-use bevy::prelude::*;
-use bevy::reflect::{DynamicStruct, Typed, TypeInfo};
+use bevy::prelude::{App, Bundle, Changed, Color, Component, Entity, Event, EventWriter, JustifyContent, Name, NodeBundle, Plugin, Query, Update, Val, With};
+use bevy::reflect::{DynamicStruct, Reflect};
 use bevy::utils::HashMap;
-use bevy_easy_compute::prelude::AppComputeWorker;
-use sickle_ui::prelude::*;
-use crate::{RngSeed, SimpleComputeWorker};
+use sickle_ui::prelude::{LabelConfig, SetBackgroundColorExt, SetJustifyContentExt, SetWidthExt, Slider, SliderConfig, UiColumnExt, UiContainerExt, UiLabelExt, UiSliderExt};
+use sickle_ui::ui_builder::UiBuilder;
 use crate::crater_settings::CraterSettings;
 
 pub struct CraterSettingPlugin;
 
+#[derive(Event)]
+pub struct CraterSettingsChanged(pub CraterSettings);
+
 impl Plugin for CraterSettingPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, get_value_changed);
+        app
+            .add_event::<CraterSettingsChanged>()
+            .add_systems(Update, get_value_changed);
     }
 }
 
@@ -108,7 +112,6 @@ impl CraterSettingWidgetExt for UiBuilder<'_, Entity> {
             .style()
             .justify_content(JustifyContent::FlexStart)
             .background_color(Color::srgb(0.3, 0.3, 0.3))
-            // .font("fonts/monofonto_rg.otf".to_string())
             .width(Val::Percent(100.));
         builder
     }
@@ -116,44 +119,18 @@ impl CraterSettingWidgetExt for UiBuilder<'_, Entity> {
 
 fn get_value_changed(
     mut query: Query<&mut Slider, (With<ValueChanged>, Changed<Slider>)>,
-    mut compute_worker: ResMut<AppComputeWorker<SimpleComputeWorker>>,
     mut widget_query: Query<&mut CraterSettingWidget>,
-    mut seed: ResMut<RngSeed>,
+    mut crater_settings_changed: EventWriter<CraterSettingsChanged>,
 )
 {
     for mut sliderBar in query.iter_mut() {
         for mut widget in widget_query.iter_mut() {
             let field = sliderBar.config().clone().label.unwrap();
-            let a = field.clone();
             let mut patch = DynamicStruct::default();
             patch.insert(field, sliderBar.value());
             widget.settings.apply(&patch);
 
-            let nmu = widget.settings.get_num_craters() as u32;
-            let craters = widget.settings.get_craters(seed.0);
-
-            let mut craters_centre: Vec<Vec3> = vec![];
-            let mut craters_radius: Vec<f32> = vec![];
-            let mut craters_floor_height: Vec<f32> = vec![];
-            let mut craters_smoothness: Vec<f32> = vec![];
-
-            for crater in craters.clone() {
-                // println!("{} {} {} {} {} {} {}", a, craters.len().clone(), nmu, crater.centre, crater.radius, crater.floor_height, crater.smoothness);
-                craters_centre.push(crater.centre);
-                craters_radius.push(crater.radius);
-                craters_floor_height.push(crater.floor_height);
-                craters_smoothness.push(crater.smoothness);
-            }
-
-            compute_worker.write_slice("num_craters", &[widget.settings.get_num_craters() as u32]);
-            compute_worker.write_slice("rim_steepness", &[widget.settings.get_rim_steepness()]);
-            compute_worker.write_slice("rim_width", &[widget.settings.get_rim_width()]);
-            compute_worker.write_slice("craters_centre", &craters_centre);
-            compute_worker.write_slice("craters_radius", &craters_radius);
-            compute_worker.write_slice("craters_floor_height", &craters_floor_height);
-            compute_worker.write_slice("craters_smoothness", &craters_smoothness);
-
-            compute_worker.execute();
+            crater_settings_changed.send(CraterSettingsChanged(widget.settings.clone()));
         }
     }
 }

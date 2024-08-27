@@ -8,7 +8,7 @@ use rand::rngs::ThreadRng;
 use rand::SeedableRng;
 use crate::utils::PRNG;
 
-#[derive(Resource, Default, Debug, Reflect)]
+#[derive(Resource, Default, Debug, Reflect,Clone)]
 pub struct SimpleNoiseSettings {
     num_layers: f32,
     lacunarity: f32,

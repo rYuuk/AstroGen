@@ -1,20 +1,20 @@
 ﻿use bevy::asset::AssetContainer;
-use bevy::prelude::*;
-use bevy::reflect::{DynamicStruct, Typed, TypeInfo};
-use bevy::utils::HashMap;
-use bevy_easy_compute::prelude::AppComputeWorker;
-use rand::rngs::StdRng;
-use rand::SeedableRng;
-use sickle_ui::prelude::*;
+use bevy::prelude::{App, Bundle, Changed, Color, Component, Entity, Event, EventWriter, JustifyContent, Name, NodeBundle, Plugin, Query, Update, Val, With};
+use bevy::reflect::{DynamicStruct, Reflect, Typed, TypeInfo};
+use sickle_ui::prelude::{LabelConfig, SetBackgroundColorExt, SetJustifyContentExt, SetWidthExt, Slider, SliderConfig, UiColumnExt, UiContainerExt, UiLabelExt, UiSliderExt};
+use sickle_ui::ui_builder::UiBuilder;
 use crate::simple_noise_settings::SimpleNoiseSettings;
-use crate::{RngSeed, SimpleComputeWorker};
-use crate::utils::PRNG;
 
 pub struct SimpleNoisePlugin;
 
+#[derive(Event)]
+pub struct SimpleNoiseSettingsChanged(pub SimpleNoiseSettings);
+
 impl Plugin for SimpleNoisePlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, get_value_changed);
+        app
+            .add_event::<SimpleNoiseSettingsChanged>()
+            .add_systems(Update, get_value_changed);
     }
 }
 
@@ -24,7 +24,6 @@ struct ValueChanged;
 #[derive(Component, Debug, Default)]
 pub struct SimpleNoiseSettingWidget {
     settings: SimpleNoiseSettings,
-    labels: HashMap<String, f32>,
 }
 
 impl SimpleNoiseSettingWidget {
@@ -80,9 +79,8 @@ impl SimpleNoiseWidgetExt for UiBuilder<'_, Entity> {
 
 fn get_value_changed(
     mut query: Query<&mut Slider, (With<ValueChanged>, Changed<Slider>)>,
-    mut compute_worker: ResMut<AppComputeWorker<SimpleComputeWorker>>,
     mut widget_query: Query<&mut SimpleNoiseSettingWidget>,
-    mut seed: ResMut<RngSeed>,
+    mut simple_noise_setting_changed: EventWriter<SimpleNoiseSettingsChanged>,
 )
 {
     for mut sliderBar in query.iter_mut() {
@@ -92,15 +90,7 @@ fn get_value_changed(
             patch.insert(field, sliderBar.value());
             widget.settings.apply(&patch);
 
-            let master_seed = seed.0;
-            let  prng = PRNG{
-                seed: master_seed,
-                rng: StdRng::seed_from_u64(master_seed)  
-            };
-            let noise_params = widget.settings.get_noise_params(prng);
-            
-             compute_worker.write_slice("noise_params_shape", &noise_params);
-            compute_worker.execute();
+            simple_noise_setting_changed.send(SimpleNoiseSettingsChanged(widget.settings.clone()));
         }
     }
 }

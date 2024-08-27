@@ -3,13 +3,10 @@ use bevy::prelude::{Reflect, Resource};
 use bevy::render::render_resource::ShaderType;
 use bevy::utils::HashMap;
 use crate::utils::{PRNG};
-use bytemuck;
-use bytemuck::{Pod, Zeroable};
 use rand::rngs::StdRng;
 use rand::SeedableRng;
 
-#[repr(C)]
-#[derive(ShaderType,Default, Clone, Copy, Pod, Zeroable)]
+#[derive(ShaderType,Default, Clone, Copy)]
 pub struct Crater {
     pub centre: Vec3,
     pub radius: f32,
@@ -17,7 +14,7 @@ pub struct Crater {
     pub smoothness: f32,
 }
 
-#[derive(Resource, Default, Debug, Reflect)]
+#[derive(Resource, Default, Debug, Reflect, Clone)]
 pub struct CraterSettings {
     num_craters: f32,
     crater_size_min: f32,
@@ -61,14 +58,11 @@ impl CraterSettings {
         for _ in 0..num_craters {
             let t = prng.value_bias_lower(self.size_distribution);
             let size = self.crater_size_min.lerp(self.crater_size_max, t);
-            // let floor_height = 0.2;
             let floor_height = -1.2.lerp(-0.2, t + prng.value_bias_lower(0.3));
-            // let smoothness = self.smooth_min.lerp(self.smooth_max, 1.0 - t);
-            let smoothness = 0.2;
+            let smoothness = self.smooth_min.lerp(self.smooth_max, 1.0 - t);
 
             // Generate a random point on the unit sphere
             let centre = prng.random_on_unit_sphere();
-            // println!("{}", smoothness);
 
             craters.push(Crater {
                 centre,
