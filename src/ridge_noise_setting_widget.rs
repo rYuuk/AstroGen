@@ -85,11 +85,11 @@ fn get_value_changed(
     mut ridge_noise_settings_changed: EventWriter<RidgeNoiseSettingsChanged>,
 )
 {
-    for mut sliderBar in query.iter_mut() {
+    for mut slider_bar in query.iter_mut() {
         for mut widget in widget_query.iter_mut() {
-            let field = sliderBar.config().clone().label.unwrap();
+            let field = slider_bar.config().clone().label.unwrap();
             let mut patch = DynamicStruct::default();
-            patch.insert(field, sliderBar.value());
+            patch.insert(field, slider_bar.value());
             widget.settings.apply(&patch);
 
             ridge_noise_settings_changed.send(RidgeNoiseSettingsChanged(widget.settings.clone(),widget.suffix.to_string()));
