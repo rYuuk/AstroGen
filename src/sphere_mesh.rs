@@ -95,9 +95,33 @@ impl SphereMesh {
             );
         }
 
-        let mut normals = Vec::with_capacity(vertices.len());
-        for vertex in &vertices {
-            normals.push(vertex.normalize());
+        let mut normals = vec![Vec3::ZERO; vertices.len()];
+
+        for triangle in indices.chunks(3) {
+            let i0 = triangle[0] as usize;
+            let i1 = triangle[1] as usize;
+            let i2 = triangle[2] as usize;
+
+            let v0 = vertices[i0];
+            let v1 = vertices[i1];
+            let v2 = vertices[i2];
+
+            let normal = (v1 - v0).cross(v2 - v0).normalize();
+
+            // Assign the same normal to each vertex in the triangle
+            normals[i0] = normal;
+            normals[i1] = normal;
+            normals[i2] = normal;
+        }
+
+        // Optionally, make sure sharp edges are preserved by not normalizing across entire mesh:
+        for i in 0..normals.len() {
+            if normals[i].length() > 0.001 {
+                normals[i] = normals[i].normalize();
+            } else {
+                // Handle cases where the normal might be too small
+                normals[i] = Vec3::new(0.0, 1.0, 0.0); // Default direction, adjust as needed
+            }
         }
 
         SphereMesh {

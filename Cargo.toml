@@ -6,11 +6,13 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-bevy = "0.14.1"
+bevy = { version = "0.14.1", default-features = false, features = ["bevy_asset", "bevy_winit", "bevy_core_pipeline", "bevy_sprite", "bevy_text", "png", "x11"]}
 rand = "0.8.5"
 noise = "0.9.0"
-sickle_ui = "0.2.1"
+sickle_ui = "0.2.3"
 bevy_easy_compute = "0.14.0"
+bytemuck = "1.17.0"
+bevy_embedded_assets = "0.11.0"
 
 # Enable a small amount of optimization in the dev profile.
 [profile.dev]
@@ -19,3 +21,25 @@ opt-level = 1
 # Enable a large amount of optimization in the dev profile for dependencies.
 [profile.dev.package."*"]
 opt-level = 3
+
+[target.wasm32-unknown-unknown]
+runner = "wasm-server-runner"
+
+# Enable more optimization in the release profile at the cost of compile time.
+[profile.release]
+# Compile the entire crate as one unit.
+# Slows compile times, marginal improvements.
+codegen-units = 1
+# Do a second optimization pass over the entire program, including dependencies.
+# Slows compile times, marginal improvements.
+lto = "thin"
+
+# Optimize for size in the wasm-release profile to reduce load times and bandwidth usage on web.
+[profile.wasm-release]
+# Default to release profile values.
+inherits = "release"
+# Optimize with size in mind (also try "z", sometimes it is better).
+# Slightly slows compile times, great improvements to file size and runtime performance.
+opt-level = "s"
+# Strip all debugging information from the binary to slightly reduce file size.
+strip = "debuginfo"
