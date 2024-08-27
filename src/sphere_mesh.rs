@@ -7,15 +7,14 @@ pub struct SphereMesh {
     pub vertices: Vec<Vec3>,
     pub indices: Vec<u32>,
     pub normals: Vec<Vec3>,
-    pub resolution: usize,
 }
 
-impl From<SphereMesh> for Mesh {
-    fn from(sphere_mesh: SphereMesh) -> Self {
+impl Into<Mesh> for SphereMesh {
+    fn into(self) -> Mesh {
         let mut mesh = Mesh::new(PrimitiveTopology::TriangleList, RenderAssetUsages::RENDER_WORLD | RenderAssetUsages::MAIN_WORLD);
-        mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION, sphere_mesh.vertices);
-        mesh.insert_indices(Indices::U32(sphere_mesh.indices));
-        mesh.insert_attribute(Mesh::ATTRIBUTE_NORMAL, sphere_mesh.normals);
+        mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION, self.vertices);
+        mesh.insert_attribute(Mesh::ATTRIBUTE_NORMAL, self.normals);
+        mesh.insert_indices(Indices::U32(self.indices));
         mesh
     }
 }
@@ -128,7 +127,6 @@ impl SphereMesh {
             vertices,
             indices,
             normals,
-            resolution,
         }
     }
 
