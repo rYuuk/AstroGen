@@ -1,32 +1,23 @@
-use bevy::audio::CpalSample;
 use bevy::input::mouse::MouseMotion;
-use bevy::math::VectorSpace;
 use bevy::prelude::*;
 use bevy::render::mesh::{Indices, PrimitiveTopology};
 use bevy::render::render_asset::RenderAssetUsages;
-use bevy::render::render_resource::encase::private::RuntimeSizedArray;
-use bevy::render::render_resource::ShaderSize;
-use bevy_easy_compute::prelude::*;
+use bevy_easy_compute::prelude::AppComputePlugin;
 use bevy_embedded_assets::{EmbeddedAssetPlugin, PluginMode};
-use rand::{Rng, SeedableRng};
-use sickle_ui::lerp::Lerp;
-use sickle_ui::prelude::{SetHeightExt, SetJustifyContentExt, SetMarginExt, SetWidthExt, Slider, SliderConfig, UiColumnExt, UiRowExt, UiSliderExt};
+use sickle_ui::prelude::{ SetJustifyContentExt, SetMarginExt, SetWidthExt, UiColumnExt,};
 use sickle_ui::SickleUiPlugin;
 use sickle_ui::ui_builder::{UiBuilderExt, UiRoot};
 
+use compute::asteroid_terrain_generator::AsteroidGeneratorPlugin;
 use simple_noise_setting_widget::SimpleNoisePlugin;
 use sphere_mesh::SphereMesh;
 
+use crate::compute::event_handler::HeightsAfterCompute;
 use crate::crater_setting_widget::{CraterSettingPlugin, CraterSettingWidgetExt};
 use crate::light::LightPlugin;
 use crate::main_camera::MainCameraPlugin;
 use crate::ridge_noise_setting_widget::{RidgeNoisePlugin, RidgeNoiseSettingWidgetExt};
 use crate::simple_noise_setting_widget::SimpleNoiseWidgetExt;
-
-
-use compute::asteroid_terrain_generator::AsteroidGeneratorPlugin;
-use compute::event_handler;
-use crate::compute::event_handler::HeightsAfterCompute;
 
 mod compute;
 mod sphere_mesh;
@@ -80,7 +71,6 @@ fn main() {
         .insert_resource(Msaa::Sample8)
         .insert_resource(RngSeed(2))
         .add_systems(Startup, setup)
-        .add_systems(Update, handle_theme_contrast_select)
         .add_systems(Update, rotate_asteroid_system)
         .add_systems(Update, receive_heights_after_compute)
         .run();
@@ -93,18 +83,10 @@ fn setup(
     sphere_mesh: Res<SphereMesh>,
 ) {
     commands.ui_builder(UiRoot).column(|row| {
-        row.slider(SliderConfig::horizontal(
-            String::from("TestDistortion"),
-            0.,
-            20.0,
-            0.,
-            true,
-        )).insert(TestDestortionSlider);
-
-        row.create_crater_setting_widget(|x| {});
-        row.create_simple_noise_setting_widget(|x| {});
-        row.create_ridge_noise_setting_widget(|y| {}, "ridge".to_string());
-        row.create_ridge_noise_setting_widget(|y| {}, "ridge2".to_string());
+        row.create_crater_setting_widget(|_x| {});
+        row.create_simple_noise_setting_widget(|_x| {});
+        row.create_ridge_noise_setting_widget(|_y| {}, "ridge".to_string());
+        row.create_ridge_noise_setting_widget(|_y| {}, "ridge2".to_string());
     })
         .style()
         .margin(UiRect::new(Val::ZERO, Val::ZERO, Val::Percent(1.), Val::ZERO))
@@ -176,16 +158,6 @@ fn generate_mesh(
         },
         Asteroid
     ));
-}
-
-fn handle_theme_contrast_select(
-    mut testDestortionQuery: Query<&Slider, (With<TestDestortionSlider>, Changed<Slider>)>,
-    // mut compute_worker: ResMut<AppComputeWorker<SimpleComputeWorker>>,
-) {
-    for mut slider_bar in testDestortionQuery.iter_mut() {
-        // compute_worker.write_slice("testValue", &[sliderBar.value()]);
-        // compute_worker.execute();
-    }
 }
 
 fn rotate_asteroid_system(

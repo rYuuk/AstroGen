@@ -8,25 +8,25 @@ struct Crater {
     smoothness: f32,
 };
 
-@group(0) @binding(7)
+@group(0) @binding(6)
 var<uniform> num_craters: u32;
 
-@group(0) @binding(8)
+@group(0) @binding(7)
 var<uniform> rim_steepness: f32;
 
-@group(0) @binding(9)
+@group(0) @binding(8)
 var<uniform> rim_width: f32;
 
-@group(0) @binding(10)
+@group(0) @binding(9)
 var<storage, read> craters_centre: array<vec3<f32>>;
 
-@group(0) @binding(11)
+@group(0) @binding(10)
 var<storage, read> craters_radius: array<f32>;
 
-@group(0) @binding(12)
+@group(0) @binding(11)
 var<storage, read> craters_floor_height: array<f32>;
 
-@group(0) @binding(13)
+@group(0) @binding(12)
 var<storage, read> craters_smoothness: array<f32>;
 
 

@@ -1,5 +1,4 @@
-﻿use bevy::asset::AssetContainer;
-use bevy::prelude::{App, Bundle, Changed, Color, Component, Entity, Event, EventWriter, JustifyContent, Name, NodeBundle, Plugin, Query, Update, Val, With};
+﻿use bevy::prelude::{App, Bundle, Changed, Color, Component, Entity, Event, EventWriter, JustifyContent, Name, NodeBundle, Plugin, Query, Update, Val, With};
 use bevy::reflect::{DynamicStruct, Reflect, Typed, TypeInfo};
 use sickle_ui::prelude::{LabelConfig, SetBackgroundColorExt, SetJustifyContentExt, SetWidthExt, Slider, SliderConfig, UiColumnExt, UiContainerExt, UiLabelExt, UiSliderExt};
 use sickle_ui::ui_builder::UiBuilder;
@@ -85,7 +84,7 @@ fn get_value_changed(
     mut ridge_noise_settings_changed: EventWriter<RidgeNoiseSettingsChanged>,
 )
 {
-    for mut slider_bar in query.iter_mut() {
+    for slider_bar in query.iter_mut() {
         for mut widget in widget_query.iter_mut() {
             let field = slider_bar.config().clone().label.unwrap();
             let mut patch = DynamicStruct::default();

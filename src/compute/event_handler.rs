@@ -12,7 +12,7 @@ pub struct HeightsAfterCompute(pub Vec<f32>);
 
 pub fn on_crater_settings_changed(
     mut crater_settings_changed: EventReader<CraterSettingsChanged>,
-    mut seed: ResMut<RngSeed>,
+    seed: ResMut<RngSeed>,
     mut compute_worker: ResMut<AppComputeWorker<AsteroidComputeWorker>>,
 ) {
     for ev in crater_settings_changed.read() {
@@ -43,7 +43,7 @@ pub fn on_crater_settings_changed(
 
 pub fn on_simple_noise_settings_changed(
     mut simple_noise_settings_changed: EventReader<SimpleNoiseSettingsChanged>,
-    mut seed: ResMut<RngSeed>,
+    seed: ResMut<RngSeed>,
     mut compute_worker: ResMut<AppComputeWorker<AsteroidComputeWorker>>,
 ) {
     for ev in simple_noise_settings_changed.read() {
@@ -58,7 +58,7 @@ pub fn on_simple_noise_settings_changed(
 
 pub fn on_ridge_settings_changed(
     mut ridge_noise_settings_changed: EventReader<RidgeNoiseSettingsChanged>,
-    mut seed: ResMut<RngSeed>,
+    seed: ResMut<RngSeed>,
     mut compute_worker: ResMut<AppComputeWorker<AsteroidComputeWorker>>,
 ) {
     for ev in ridge_noise_settings_changed.read() {
@@ -73,7 +73,7 @@ pub fn on_ridge_settings_changed(
 }
 
 pub fn receive_heights_after_compute(
-    mut compute_worker: ResMut<AppComputeWorker<AsteroidComputeWorker>>,
+    compute_worker: ResMut<AppComputeWorker<AsteroidComputeWorker>>,
     mut heights_after_compute: EventWriter<HeightsAfterCompute>,
 ) {
     if compute_worker.ready() {

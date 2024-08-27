@@ -1,7 +1,5 @@
-﻿use bevy::asset::AssetContainer;
-use bevy::prelude::{App, Bundle, Changed, Color, Component, Entity, Event, EventWriter, JustifyContent, Name, NodeBundle, Plugin, Query, Update, Val, With};
+﻿use bevy::prelude::{App, Bundle, Changed, Color, Component, Entity, Event, EventWriter, JustifyContent, Name, NodeBundle, Plugin, Query, Update, Val, With};
 use bevy::reflect::{DynamicStruct, Reflect};
-use bevy::utils::HashMap;
 use sickle_ui::prelude::{LabelConfig, SetBackgroundColorExt, SetJustifyContentExt, SetWidthExt, Slider, SliderConfig, UiColumnExt, UiContainerExt, UiLabelExt, UiSliderExt};
 use sickle_ui::ui_builder::UiBuilder;
 use crate::crater_settings::CraterSettings;
@@ -25,7 +23,6 @@ struct ValueChanged;
 #[derive(Component, Debug, Default)]
 pub struct CraterSettingWidget {
     settings: CraterSettings,
-    labels: HashMap<String, f32>,
 }
 
 impl CraterSettingWidget {
@@ -40,7 +37,7 @@ pub trait CraterSettingWidgetExt {
 
 impl CraterSettingWidgetExt for UiBuilder<'_, Entity> {
     fn create_crater_setting_widget(&mut self, spawn_children: impl FnOnce(&mut UiBuilder<Entity>)) -> UiBuilder<Entity> {
-        let mut widget = CraterSettingWidget::default();
+        let widget = CraterSettingWidget::default();
         let mut builder = self.container((CraterSettingWidget::frame(), widget), spawn_children);
         builder.column(|column| {
             column.label(LabelConfig::from("Crater Settings"));
@@ -123,7 +120,7 @@ fn get_value_changed(
     mut crater_settings_changed: EventWriter<CraterSettingsChanged>,
 )
 {
-    for mut slider_bar in query.iter_mut() {
+    for slider_bar in query.iter_mut() {
         for mut widget in widget_query.iter_mut() {
             let field = slider_bar.config().clone().label.unwrap();
             let mut patch = DynamicStruct::default();

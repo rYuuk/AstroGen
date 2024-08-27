@@ -46,13 +46,9 @@ impl PRNG {
             let z: f32 = self.rng.gen_range(-1.0..1.0);
 
             let point = Vec3::new(x, y, z);
-            // println!("Before {}", point);
 
             // Check if the point is on the unit sphere
             if point.length_squared() <= 1.0 {
-                let a = point.normalize();
-                // println!("Normal {}", a);
-
                 return point.normalize();
             }
         }

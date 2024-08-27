@@ -11,15 +11,12 @@ var<storage, read_write> heights: array<f32>;
 var<uniform> numVertices: u32;
  
 @group(0) @binding(3)
-var<uniform> testValue: f32;
-
-@group(0) @binding(4)
 var<storage, read> noise_params_shape: array<vec4<f32>,3>;
 
-@group(0) @binding(5)
+@group(0) @binding(4)
 var<storage, read> noise_params_ridge: array<vec4<f32>,3>;
 
-@group(0) @binding(6)
+@group(0) @binding(5)
 var<storage, read> noise_params_ridge2: array<vec4<f32>,3>;
  
 @compute @workgroup_size(1024)
@@ -42,6 +39,6 @@ fn main(@builtin(global_invocation_id) id: vec3<u32>) {
      let ridge2 = smoothedRidgidNoise(vertexPos, noise_params_ridge2);
      
      let noiseSum = (shapeNoise + ridgeNoise + ridge2) * elevationMultiplier;
-     let finalHeight = 1 + craterDepth + noiseSum + sin(vertexPos.y * testValue) * 0.05;
+     let finalHeight = 1 + craterDepth + noiseSum;
      heights[index] = finalHeight ;
 }

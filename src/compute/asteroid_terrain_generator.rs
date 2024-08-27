@@ -46,11 +46,10 @@ impl<'a> AsteroidComputeWorkerBuilder<'a> {
         let len = self.sphere_mesh.vertices.len();
         let noise_params: Vec<[f32; 4]> = vec![[0.0; 4]; 3];
 
-        let mut worker = AppComputeWorkerBuilder::new(self.world)
+        let worker = AppComputeWorkerBuilder::new(self.world)
             .add_staging("vertices", &self.sphere_mesh.vertices)
             .add_staging("heights", &vec![0.0; len])
             .add_uniform("numVertices", &(len as u32))
-            .add_uniform("testValue", &0.0)
             .add_storage("noise_params_shape", &noise_params)
             .add_storage("noise_params_ridge", &noise_params)
             .add_storage("noise_params_ridge2", &noise_params)
@@ -62,7 +61,7 @@ impl<'a> AsteroidComputeWorkerBuilder<'a> {
             .add_storage("craters_floor_height", &vec![0.0; 1000])
             .add_storage("craters_smoothness", &vec![0.0; 1000])
             .add_pass::<AsteroidHeightComputeShader>([1024, 1, 1], &[
-                "vertices", "heights", "numVertices", "testValue",
+                "vertices", "heights", "numVertices", 
                 "noise_params_shape", "noise_params_ridge", "noise_params_ridge2",
                 "num_craters", "rim_steepness", "rim_width",
                 "craters_centre", "craters_radius", "craters_floor_height", "craters_smoothness",
