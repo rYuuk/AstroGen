@@ -29,7 +29,7 @@ pub fn generate_mesh(
             mesh: meshes.add(mesh),
             material: materials.add(StandardMaterial {
                 base_color: Color::srgb(0.4, 0.4, 0.4),
-                perceptual_roughness: 1.,
+                // perceptual_roughness: 1.,
                 ..default()
             }),
             transform: Transform {

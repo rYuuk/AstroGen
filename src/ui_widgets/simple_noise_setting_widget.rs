@@ -61,7 +61,7 @@ impl SimpleNoiseWidgetExt for UiBuilder<'_, Entity> {
                 column.slider(SliderConfig::horizontal(
                     name,
                     0.,
-                    20.0,
+                    10.0,
                     0.,
                     true,
                 ))

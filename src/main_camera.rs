@@ -25,8 +25,7 @@ fn initialize_camera(mut commands: Commands) {
         }
             .into(),
         ..default()
-    },
-                    MainCamera),
+    }, MainCamera),
     );
 }
 

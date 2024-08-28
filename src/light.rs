@@ -33,8 +33,8 @@ fn initialize_camera(
             ..default()
         },
         cascade_shadow_config: CascadeShadowConfigBuilder {
-            first_cascade_far_bound: 4.0,
-            maximum_distance: 10.0,
+            first_cascade_far_bound: 3.0,
+            maximum_distance: 30.0,
             ..default()
         }
             .into(),
