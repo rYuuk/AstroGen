@@ -12,7 +12,7 @@ use sickle_ui::ui_builder::{UiBuilderExt, UiRoot};
 use compute::asteroid_terrain_generator::AsteroidGeneratorPlugin;
 use sphere_mesh::SphereMesh;
 
-use crate::asteroid_mesh::{Asteroid, AsteroidMeshPlugin, generate_mesh};
+use crate::asteroid_mesh::{Asteroid, AsteroidMeshPlugin, render_generated_asteroid};
 use crate::compute::event_handler::HeightsAfterCompute;
 use crate::light::LightPlugin;
 use crate::main_camera::MainCameraPlugin;
@@ -56,7 +56,6 @@ fn main() {
         .insert_resource(Msaa::Sample8)
         .insert_resource(RngSeed(2))
         .add_systems(Startup, setup)
-        .add_systems(Update, generate_mesh_from_new_heights)
         .run();
 }
 
@@ -74,42 +73,4 @@ fn setup(
         .justify_content(JustifyContent::FlexStart)
         .width(Val::Percent(30.));
 }
-
-fn generate_mesh_from_new_heights(
-    mut height_after_compute: EventReader<HeightsAfterCompute>,
-    asteroid_query: Query<(Entity, &Transform), With<Asteroid>>,
-    mut commands: Commands,
-    meshes: ResMut<Assets<Mesh>>,
-    materials: ResMut<Assets<StandardMaterial>>,
-) {
-    let mut heights: Vec<f32> = vec![];
-
-    for ev in height_after_compute.read() {
-        heights = ev.0.clone();
-    }
-
-    if heights.len() == 0
-    {
-        return;
-    }
-
-    let mut rot = Quat::default();
-
-    if let Ok(asteroid_entity) = asteroid_query.get_single() {
-        rot = asteroid_entity.1.rotation;
-        commands.entity(asteroid_entity.0).despawn();
-    }
-
-    let mut sphere_mesh = SphereMesh::new(400);
-    let vertices = sphere_mesh.vertices.clone();
-
-    let mut new_vertices: Vec<Vec3> = vec![];
-    for i in 0..vertices.len() {
-        new_vertices.push(vertices[i] * heights[i]);
-    }
-
-    sphere_mesh.vertices = new_vertices;
-    generate_mesh(commands, meshes, materials, sphere_mesh.into(), rot);
-}
-
 
