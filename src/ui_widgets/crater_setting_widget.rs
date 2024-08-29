@@ -100,7 +100,7 @@ impl CraterSettingWidgetExt for UiBuilder<'_, Entity> {
             column.slider(SliderConfig::horizontal(
                 "size_distribution".to_string(),
                 0.,
-                2.,
+                1.,
                 0.4,
                 true,
             ))
