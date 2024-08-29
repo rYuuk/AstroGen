@@ -1,8 +1,6 @@
 ﻿use bevy::prelude::*;
-use bevy::render::mesh::{Indices, PrimitiveTopology};
-use bevy::render::render_asset::RenderAssetUsages;
 
-#[derive(Resource, Clone)]
+#[derive(Resource)]
 pub struct SphereMesh {
     pub vertices: Vec<Vec3>,
     pub indices: Vec<u32>,
@@ -88,7 +86,7 @@ impl SphereMesh {
             indices,
         }
     }
-    
+
     fn create_face(
         vertices: &mut Vec<Vec3>,
         indices: &mut Vec<u32>,

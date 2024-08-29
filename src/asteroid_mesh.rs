@@ -1,10 +1,9 @@
 ﻿use bevy::asset::Assets;
 use bevy::color::Color;
 use bevy::input::mouse::MouseMotion;
-use bevy::math::{Quat, Vec2, Vec3};
+use bevy::math::{Quat, Vec3};
 use bevy::pbr::{PbrBundle, StandardMaterial};
 use bevy::prelude::{App, ButtonInput, Commands, Component, default, Entity, EventReader, Mesh, MouseButton, Plugin, Query, Res, ResMut, Transform, Update, With};
-use bevy::render::mesh;
 use bevy::render::mesh::{Indices, PrimitiveTopology};
 use bevy::render::render_asset::RenderAssetUsages;
 use crate::compute::event_handler::HeightsAfterCompute;
@@ -24,7 +23,7 @@ pub struct Asteroid;
 
 pub fn render_generated_asteroid(
     mut commands: Commands,
-    mut mesh: Mesh,
+    mesh: Mesh,
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut meshes: ResMut<Assets<Mesh>>,
     rot: Quat,
@@ -53,7 +52,7 @@ fn generate_mesh_from_new_heights(
     mut commands: Commands,
     meshes: ResMut<Assets<Mesh>>,
     materials: ResMut<Assets<StandardMaterial>>,
-    mut sphere_mesh: ResMut<SphereMesh>,
+    sphere_mesh: ResMut<SphereMesh>,
 ) {
     let mut heights: Vec<f32> = vec![];
 
@@ -91,7 +90,7 @@ fn generate_mesh(vertices: Vec<Vec3>, heights: Vec<f32>, indices: Vec<u32>) -> M
         new_vertices.push(vertices[i] * heights[i]);
     }
     let normals = recalculate_normals(&new_vertices, &indices);
-    
+
     let mut mesh = Mesh::new(PrimitiveTopology::TriangleList, RenderAssetUsages::RENDER_WORLD | RenderAssetUsages::MAIN_WORLD);
     mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION, new_vertices);
     mesh.insert_attribute(Mesh::ATTRIBUTE_NORMAL, normals);

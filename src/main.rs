@@ -1,19 +1,18 @@
 use bevy::DefaultPlugins;
-use bevy::math::{Quat, Vec3};
-use bevy::prelude::{App, Assets, Commands, Entity, EventReader, Mesh, Msaa, PluginGroup, Query, ResMut, Resource, StandardMaterial, Startup, Transform, Update, Window, WindowPlugin, With};
+use bevy::prelude::{App, Commands, Msaa, PluginGroup, Resource, Startup, Window, WindowPlugin};
 use bevy::ui::{JustifyContent, UiRect, Val};
 use bevy::utils::default;
 use bevy_easy_compute::prelude::AppComputePlugin;
 use bevy_embedded_assets::{EmbeddedAssetPlugin, PluginMode};
-use sickle_ui::prelude::{ SetJustifyContentExt, SetMarginExt, SetWidthExt, UiColumnExt};
+use iyes_perf_ui::entries::PerfUiCompleteBundle;
+use iyes_perf_ui::PerfUiPlugin;
+use sickle_ui::prelude::{SetJustifyContentExt, SetMarginExt, SetWidthExt, UiColumnExt};
 use sickle_ui::SickleUiPlugin;
 use sickle_ui::ui_builder::{UiBuilderExt, UiRoot};
 
 use compute::asteroid_terrain_generator::AsteroidGeneratorPlugin;
-use sphere_mesh::SphereMesh;
 
-use crate::asteroid_mesh::{Asteroid, AsteroidMeshPlugin, render_generated_asteroid};
-use crate::compute::event_handler::HeightsAfterCompute;
+use crate::asteroid_mesh::{AsteroidMeshPlugin};
 use crate::light::LightPlugin;
 use crate::main_camera::MainCameraPlugin;
 use crate::ui_widgets::crater_setting_widget::{CraterSettingPlugin, CraterSettingWidgetExt};
@@ -40,7 +39,7 @@ fn main() {
         .add_plugins(DefaultPlugins.set(WindowPlugin {
             primary_window: Some(Window {
                 title: "AstroGen".into(),
-                resolution: (1920.,1080.).into(),
+                resolution: (1920., 1080.).into(),
                 ..default()
             }),
             ..default()
@@ -49,6 +48,11 @@ fn main() {
         .add_plugins(AppComputePlugin)
         .add_plugins(AsteroidGeneratorPlugin)
         .add_plugins(AsteroidMeshPlugin)
+        // we want Bevy to measure these values for us:
+        .add_plugins(bevy::diagnostic::FrameTimeDiagnosticsPlugin)
+        .add_plugins(bevy::diagnostic::EntityCountDiagnosticsPlugin)
+        .add_plugins(bevy::diagnostic::SystemInformationDiagnosticsPlugin)
+        .add_plugins(PerfUiPlugin)
         .add_plugins((MainCameraPlugin, LightPlugin))
         .add_plugins(CraterSettingPlugin)
         .add_plugins(SimpleNoisePlugin)
@@ -72,5 +76,7 @@ fn setup(
         .margin(UiRect::new(Val::ZERO, Val::ZERO, Val::Percent(1.), Val::ZERO))
         .justify_content(JustifyContent::FlexStart)
         .width(Val::Percent(30.));
+
+    commands.spawn(PerfUiCompleteBundle::default());
 }
 
