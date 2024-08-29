@@ -72,23 +72,16 @@ fn generate_mesh_from_new_heights(
         commands.entity(asteroid_entity.0).despawn();
     }
 
-    // let vertices = sphere_mesh.vertices.clone();
-
-    let mut new_vertices: Vec<Vec3> = vec![];
-    for i in 0..sphere_mesh.vertices.len() {
-        new_vertices.push(sphere_mesh.vertices[i] * heights[i]);
-    }
-
     let mesh = generate_mesh(sphere_mesh.vertices.clone(), heights, sphere_mesh.indices.clone());
-    // sphere_mesh.vertices = new_vertices;
     render_generated_asteroid(commands, mesh, materials, meshes, rot);
 }
 
 fn generate_mesh(vertices: Vec<Vec3>, heights: Vec<f32>, indices: Vec<u32>) -> Mesh {
-    let mut new_vertices: Vec<Vec3> = vec![];
-    for i in 0..vertices.len() {
-        new_vertices.push(vertices[i] * heights[i]);
-    }
+    let mut new_vertices = Vec::with_capacity(vertices.len());
+    new_vertices.extend(
+        vertices.into_iter().zip(heights.into_iter()).map(|(v, h)| v * h),
+    );
+    
     let normals = recalculate_normals(&new_vertices, &indices);
 
     let mut mesh = Mesh::new(PrimitiveTopology::TriangleList, RenderAssetUsages::RENDER_WORLD | RenderAssetUsages::MAIN_WORLD);

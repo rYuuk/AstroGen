@@ -52,7 +52,7 @@ impl CraterSettingWidgetExt for UiBuilder<'_, Entity> {
             column.slider(SliderConfig::horizontal(
                 "crater_size_min".to_string(),
                 0.,
-                2.,
+                1.,
                 0.01,
                 true,
             ))
@@ -60,7 +60,7 @@ impl CraterSettingWidgetExt for UiBuilder<'_, Entity> {
             column.slider(SliderConfig::horizontal(
                 "crater_size_max".to_string(),
                 0.,
-                2.,
+                1.,
                 0.1,
                 true,
             ))
