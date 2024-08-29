@@ -4,14 +4,15 @@ use bevy::ui::{JustifyContent, UiRect, Val};
 use bevy::utils::default;
 use bevy_easy_compute::prelude::AppComputePlugin;
 use bevy_embedded_assets::{EmbeddedAssetPlugin, PluginMode};
+#[cfg(feature = "diagnostics")]
 use iyes_perf_ui::entries::PerfUiCompleteBundle;
+#[cfg(feature = "diagnostics")]
 use iyes_perf_ui::PerfUiPlugin;
 use sickle_ui::prelude::{SetJustifyContentExt, SetMarginExt, SetWidthExt, UiColumnExt};
 use sickle_ui::SickleUiPlugin;
 use sickle_ui::ui_builder::{UiBuilderExt, UiRoot};
 
 use compute::asteroid_terrain_generator::AsteroidGeneratorPlugin;
-
 use crate::asteroid_mesh::{AsteroidMeshPlugin};
 use crate::light::LightPlugin;
 use crate::main_camera::MainCameraPlugin;
@@ -48,11 +49,7 @@ fn main() {
         .add_plugins(AppComputePlugin)
         .add_plugins(AsteroidGeneratorPlugin)
         .add_plugins(AsteroidMeshPlugin)
-        // we want Bevy to measure these values for us:
-        .add_plugins(bevy::diagnostic::FrameTimeDiagnosticsPlugin)
-        .add_plugins(bevy::diagnostic::EntityCountDiagnosticsPlugin)
-        .add_plugins(bevy::diagnostic::SystemInformationDiagnosticsPlugin)
-        .add_plugins(PerfUiPlugin)
+        .add_diagnostics()
         .add_plugins((MainCameraPlugin, LightPlugin))
         .add_plugins(CraterSettingPlugin)
         .add_plugins(SimpleNoisePlugin)
@@ -63,6 +60,22 @@ fn main() {
         .run();
 }
 
+pub trait AddDiagnostics {
+    fn add_diagnostics(&mut self) -> &mut Self;
+}
+
+impl AddDiagnostics for App {
+    fn add_diagnostics(&mut self) -> &mut Self {
+        #[cfg(feature = "diagnostics")]
+        {
+            self.add_plugins(bevy::diagnostic::FrameTimeDiagnosticsPlugin)
+                .add_plugins(bevy::diagnostic::EntityCountDiagnosticsPlugin)
+                .add_plugins(bevy::diagnostic::SystemInformationDiagnosticsPlugin)
+                .add_plugins(PerfUiPlugin);
+        }
+        self
+    }
+}
 fn setup(
     mut commands: Commands,
 ) {
@@ -77,6 +90,6 @@ fn setup(
         .justify_content(JustifyContent::FlexStart)
         .width(Val::Percent(30.));
 
+    #[cfg(feature = "diagnostics")]
     commands.spawn(PerfUiCompleteBundle::default());
 }
-
