@@ -1,6 +1,6 @@
-﻿use bevy::prelude::{App, Bundle, Changed, Color, Component, Entity, Event, EventWriter, JustifyContent, Name, NodeBundle, Plugin, Query, Update, Val, With};
+﻿use bevy::prelude::*;
 use bevy::reflect::{DynamicStruct, Reflect};
-use sickle_ui::prelude::{LabelConfig, SetBackgroundColorExt, SetJustifyContentExt, SetWidthExt, Slider, SliderConfig, UiColumnExt, UiContainerExt, UiLabelExt, UiSliderExt};
+use sickle_ui::prelude::*;
 use sickle_ui::ui_builder::UiBuilder;
 use crate::settings::crater_settings::CraterSettings;
 
@@ -107,7 +107,7 @@ impl CraterSettingWidgetExt for UiBuilder<'_, Entity> {
                 .insert(ValueChanged);
         })
             .style()
-            .justify_content(JustifyContent::FlexStart)
+            .justify_content(JustifyContent::Stretch)
             .background_color(Color::srgb(0.3, 0.3, 0.3))
             .width(Val::Percent(100.));
         builder

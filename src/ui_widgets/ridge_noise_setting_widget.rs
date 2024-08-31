@@ -1,6 +1,6 @@
-﻿use bevy::prelude::{App, Bundle, Changed, Color, Component, Entity, Event, EventWriter, JustifyContent, Name, NodeBundle, Plugin, Query, Update, Val, With};
+﻿use bevy::prelude::*;
 use bevy::reflect::{DynamicStruct, Reflect, Typed, TypeInfo};
-use sickle_ui::prelude::{LabelConfig, SetBackgroundColorExt, SetJustifyContentExt, SetWidthExt, Slider, SliderConfig, UiColumnExt, UiContainerExt, UiLabelExt, UiSliderExt};
+use sickle_ui::prelude::*;
 use sickle_ui::ui_builder::UiBuilder;
 use crate::settings::ridge_noise_settings::RidgeNoiseSettings;
 

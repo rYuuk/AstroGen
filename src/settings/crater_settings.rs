@@ -50,7 +50,6 @@ impl CraterSettings {
 
         let seed = crater_seed + CRATER_SEED;
         let mut prng = PRNG {
-            seed,
             rng: StdRng::seed_from_u64(seed),
         };
 

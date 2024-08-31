@@ -4,14 +4,12 @@ use rand::distributions::{Distribution, Uniform};
 use rand::prelude::StdRng;
 
 pub struct PRNG {
-    pub seed: u64,
     pub rng: StdRng
 }
 
 impl PRNG {
     pub fn new(seed: u64) -> Self{
         PRNG {
-            seed,
             rng: StdRng::seed_from_u64(seed)
         }
     }
