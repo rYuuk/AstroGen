@@ -1,4 +1,5 @@
-﻿use bevy::asset::Assets;
+﻿use std::time::Instant;
+use bevy::asset::Assets;
 use bevy::color::Color;
 use bevy::input::mouse::MouseMotion;
 use bevy::math::{Quat, Vec3};
@@ -7,6 +8,7 @@ use bevy::prelude::{App, ButtonInput, Commands, Component, default, Entity, Even
 use bevy::render::mesh::{Indices, PrimitiveTopology};
 use bevy::render::render_asset::RenderAssetUsages;
 use crate::compute::event_handler::HeightsAfterCompute;
+use crate::ExportButtonClicked;
 use crate::sphere_mesh::SphereMesh;
 
 pub struct AsteroidMeshPlugin;
@@ -33,7 +35,7 @@ pub fn render_generated_asteroid(
             mesh: meshes.add(mesh),
             material: materials.add(StandardMaterial {
                 base_color: Color::srgb(0.4, 0.4, 0.4),
-                // perceptual_roughness: 1.,
+                perceptual_roughness: 0.9,
                 ..default()
             }),
             transform: Transform {
@@ -81,9 +83,12 @@ fn generate_mesh(vertices: Vec<Vec3>, heights: Vec<f32>, indices: Vec<u32>) -> M
     new_vertices.extend(
         vertices.into_iter().zip(heights.into_iter()).map(|(v, h)| v * h),
     );
-    
-    let normals = recalculate_normals(&new_vertices, &indices);
 
+    let start_time = Instant::now();
+    let normals = recalculate_normals(&new_vertices, &indices);
+    let duration = start_time.elapsed();
+    println!("Time taken to recalculate normals: {:?}", duration);
+    
     let mut mesh = Mesh::new(PrimitiveTopology::TriangleList, RenderAssetUsages::RENDER_WORLD | RenderAssetUsages::MAIN_WORLD);
     mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION, new_vertices);
     mesh.insert_attribute(Mesh::ATTRIBUTE_NORMAL, normals);
@@ -103,22 +108,21 @@ fn recalculate_normals(vertices: &Vec<Vec3>, indices: &Vec<u32>) -> Vec<Vec3> {
         let v1 = vertices[i1];
         let v2 = vertices[i2];
 
-        let normal = (v1 - v0).cross(v2 - v0).normalize();
-        // Assign the same normal to each vertex in the triangle
-        normals[i0] = normal;
-        normals[i1] = normal;
-        normals[i2] = normal;
+        let edge1 = v1 - v0;
+        let edge2 = v2 - v0;
+        let normal = edge1.cross(edge2);
+
+        // Accumulate the normal for each vertex
+        normals[i0] += normal;
+        normals[i1] += normal;
+        normals[i2] += normal;
     }
 
-    // Optionally, make sure sharp edges are preserved by not normalizing across entire mesh:
-    for i in 0..normals.len() {
-        if normals[i].length() > 0.001 {
-            normals[i] = normals[i].normalize();
-        } else {
-            // Handle cases where the normal might be too small
-            normals[i] = Vec3::new(0.0, 1.0, 0.0); // Default direction, adjust as needed
-        }
+    // Normalize the accumulated normals
+    for normal in &mut normals {
+        *normal = normal.normalize();
     }
+
     normals
 }
 
@@ -143,3 +147,4 @@ fn rotate_asteroid_mouse(
         }
     }
 }
+
