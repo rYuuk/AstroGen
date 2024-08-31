@@ -26,15 +26,13 @@ fn initialize_camera(
         },
         directional_light: DirectionalLight {
             shadows_enabled: true,
-            shadow_depth_bias: 0.005,
-            shadow_normal_bias: 0.002,
             illuminance: light_consts::lux::AMBIENT_DAYLIGHT,
             color: Color::WHITE,
             ..default()
         },
         cascade_shadow_config: CascadeShadowConfigBuilder {
-            first_cascade_far_bound: 3.0,
-            maximum_distance: 30.0,
+            num_cascades: 1,
+            maximum_distance: 1.6,
             ..default()
         }
             .into(),
