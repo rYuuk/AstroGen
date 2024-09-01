@@ -2,13 +2,13 @@
 #import "shaders/noise.wgsl"::{simpleNoise, smoothedRidgidNoise}
 
 @group(0) @binding(0)
-var<storage, read_write> vertices: array<vec3<f32>>;
+var<storage, read> vertices: array<vec3<f32>>;
  
 @group(0) @binding(1)
-var<storage, read_write> heights: array<f32>;
+var<storage, read_write> new_vertices: array<f32>;
  
 @group(0) @binding(2)
-var<uniform> numVertices: u32;
+var<uniform> num_vertices: u32;
  
 @group(0) @binding(3)
 var<storage, read> noise_params_shape: array<vec4<f32>,3>;
@@ -23,7 +23,7 @@ var<storage, read> noise_params_ridge2: array<vec4<f32>,3>;
 fn main(@builtin(global_invocation_id) id: vec3<u32>) {
      let index = id.x;
  
-     if (index >= numVertices) {
+     if (index >= num_vertices) {
          return;
      }
  
@@ -40,5 +40,5 @@ fn main(@builtin(global_invocation_id) id: vec3<u32>) {
      
      let noiseSum = (shapeNoise + ridgeNoise + ridge2) * elevationMultiplier;
      let finalHeight = 1 + craterDepth + noiseSum;
-     heights[index] = finalHeight ;
+     new_vertices[index] = finalHeight ;
 }

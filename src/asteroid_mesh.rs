@@ -7,7 +7,7 @@ use bevy::pbr::{PbrBundle, StandardMaterial};
 use bevy::prelude::{App, ButtonInput, Commands, Component, default, Entity, EventReader, Mesh, MouseButton, Plugin, Query, Res, ResMut, Transform, Update, With};
 use bevy::render::mesh::{Indices, PrimitiveTopology};
 use bevy::render::render_asset::RenderAssetUsages;
-use crate::compute::event_handler::HeightsAfterCompute;
+use crate::compute::event_handler::NewVerticesAfterCompute;
 use crate::ExportButtonClicked;
 use crate::sphere_mesh::SphereMesh;
 
@@ -16,7 +16,7 @@ pub struct AsteroidMeshPlugin;
 impl Plugin for AsteroidMeshPlugin {
     fn build(&self, app: &mut App) {
         app
-            .add_systems(Update, (generate_mesh_from_new_heights, rotate_asteroid_mouse));
+            .add_systems(Update, (generate_mesh_from_new_vertices, rotate_asteroid_mouse));
     }
 }
 
@@ -48,8 +48,8 @@ pub fn render_generated_asteroid(
         Asteroid
     ));
 }
-fn generate_mesh_from_new_heights(
-    mut height_after_compute: EventReader<HeightsAfterCompute>,
+fn generate_mesh_from_new_vertices(
+    mut height_after_compute: EventReader<NewVerticesAfterCompute>,
     asteroid_query: Query<(Entity, &Transform), With<Asteroid>>,
     mut commands: Commands,
     meshes: ResMut<Assets<Mesh>>,

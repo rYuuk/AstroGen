@@ -29,13 +29,6 @@ enum Output {
     Binary,
 }
 
-#[derive(Copy, Clone, Debug)]
-#[repr(C)]
-struct Vertex {
-    position: [f32; 3],
-    color: [f32; 3],
-}
-
 fn export_gltf(
     asteroid_query: Query<&Handle<Mesh>, With<Asteroid>>,
     mut on_export_clicked: EventReader<ExportButtonClicked>,
@@ -63,7 +56,6 @@ fn export_gltf(
                         println!("WARNING !! Indices are in u16");
                     }
                     Indices::U32(indices) => {
-                        println!("Indices (u32):");
                         mesh_indices = indices;
                     }
                 }
@@ -278,6 +270,7 @@ fn export(vertices: &Vec<[f32; 3]>, indices: &Vec<u32>, normals: &Vec<[f32; 3]>)
             };
             let mut writer = fs::File::create("asteroid/buffer0.bin").expect("I/O error");
             writer.write_all(&bin).expect("I/O error");
+            println!("Asteroid data written asteroid.glb");
         }
         Output::Binary => {
             let json_string = json::serialize::to_string(&root).expect("Serialization error");
@@ -302,6 +295,7 @@ fn export(vertices: &Vec<[f32; 3]>, indices: &Vec<u32>, normals: &Vec<[f32; 3]>)
             };
             let writer = std::fs::File::create("asteroid.glb").expect("I/O error");
             glb.to_writer(writer).expect("glTF binary output error");
+            println!("Asteroid data written asteroid.glb");
         }
     }
 }

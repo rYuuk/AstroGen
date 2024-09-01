@@ -8,7 +8,7 @@ use crate::ui_widgets::simple_noise_setting_widget::SimpleNoiseSettingsChanged;
 use crate::utils::PRNG;
 
 #[derive(Event)]
-pub struct HeightsAfterCompute(pub Vec<f32>);
+pub struct NewVerticesAfterCompute(pub Vec<f32>);
 
 pub fn on_crater_settings_changed(
     mut crater_settings_changed: EventReader<CraterSettingsChanged>,
@@ -74,10 +74,10 @@ pub fn on_ridge_settings_changed(
 
 pub fn receive_heights_after_compute(
     compute_worker: ResMut<AppComputeWorker<AsteroidComputeWorker>>,
-    mut heights_after_compute: EventWriter<HeightsAfterCompute>,
+    mut heights_after_compute: EventWriter<NewVerticesAfterCompute>,
 ) {
     if compute_worker.ready() {
-        let result: Vec<f32> = compute_worker.read_vec("heights");
-        heights_after_compute.send(HeightsAfterCompute(result));
+        let result: Vec<f32> = compute_worker.read_vec("new_vertices");
+        heights_after_compute.send(NewVerticesAfterCompute(result));
     }
 }
