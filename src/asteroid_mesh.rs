@@ -1,14 +1,16 @@
 ﻿use std::time::Instant;
-use bevy::asset::Assets;
+use bevy::asset::{Asset, Assets, AssetServer, Handle};
 use bevy::color::Color;
 use bevy::input::mouse::MouseMotion;
 use bevy::math::{Quat, Vec3};
-use bevy::pbr::{PbrBundle, StandardMaterial};
-use bevy::prelude::{App, ButtonInput, Commands, Component, default, Entity, EventReader, Mesh, MouseButton, Plugin, Query, Res, ResMut, Transform, Update, With};
-use bevy::render::mesh::{Indices, PrimitiveTopology};
+use bevy::pbr::{Material, MaterialMeshBundle, MaterialPlugin, PbrBundle, StandardMaterial};
+use bevy::prelude::{AlphaMode, App, ButtonInput, Commands, Component, default, Entity, EventReader, Gizmos, Image, Mesh, MouseButton, Plugin, Query, Res, ResMut, Transform, TypePath, Update, With};
+use bevy::render::mesh::{Indices, PrimitiveTopology, VertexAttributeValues};
 use bevy::render::render_asset::RenderAssetUsages;
-use crate::compute::event_handler::NewVerticesAfterCompute;
+use bevy::render::render_resource::{AsBindGroup, ShaderRef};
+use crate::compute::event_handler::MeshDataAfterCompute;
 use crate::ExportButtonClicked;
+use crate::light::LightDirection;
 use crate::sphere_mesh::SphereMesh;
 
 pub struct AsteroidMeshPlugin;
@@ -16,6 +18,7 @@ pub struct AsteroidMeshPlugin;
 impl Plugin for AsteroidMeshPlugin {
     fn build(&self, app: &mut App) {
         app
+            .add_plugins(MaterialPlugin::<TriplanarMaterial>::default())
             .add_systems(Update, (generate_mesh_from_new_vertices, rotate_asteroid_mouse));
     }
 }
@@ -23,21 +26,52 @@ impl Plugin for AsteroidMeshPlugin {
 #[derive(Component)]
 pub struct Asteroid;
 
+#[derive(Asset, TypePath, AsBindGroup, Debug, Clone)]
+struct TriplanarMaterial {
+    #[uniform(0)]
+    pub scale: f32,
+    #[uniform(1)]
+    pub blend_sharpness: f32,
+    #[texture(2)]
+    #[sampler(3)]
+    pub main_texture: Option<Handle<Image>>,
+    #[texture(4)]
+    #[sampler(5)]
+    pub normal_map: Option<Handle<Image>>,
+    #[uniform(6)]
+    pub light_direction: Vec3,
+}
+
+impl Material for TriplanarMaterial {
+    fn fragment_shader() -> ShaderRef {
+        "shaders/triplanar_fragment.wgsl".into()
+    }
+}
+
 pub fn render_generated_asteroid(
     mut commands: Commands,
     mesh: Mesh,
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut meshes: ResMut<Assets<Mesh>>,
+    asset_server: Res<AssetServer>,
     rot: Quat,
+    light_direction: Res<LightDirection>,
 ) {
     commands.spawn((
-        PbrBundle {
+        MaterialMeshBundle {
             mesh: meshes.add(mesh),
             material: materials.add(StandardMaterial {
                 base_color: Color::srgb(0.4, 0.4, 0.4),
                 perceptual_roughness: 0.9,
                 ..default()
             }),
+            // material: materials.add(TriplanarMaterial {
+            //     scale: 1.0,
+            //     blend_sharpness: 7.0,
+            //     main_texture: Some(asset_server.load("textures/MoonNoise.jpg")),
+            //     normal_map: Some(asset_server.load("textures/Craters.jpg")),
+            //     light_direction: light_direction.direction,
+            // }),
             transform: Transform {
                 translation: Vec3::ZERO,
                 rotation: rot,
@@ -49,20 +83,24 @@ pub fn render_generated_asteroid(
     ));
 }
 fn generate_mesh_from_new_vertices(
-    mut height_after_compute: EventReader<NewVerticesAfterCompute>,
+    mut height_after_compute: EventReader<MeshDataAfterCompute>,
     asteroid_query: Query<(Entity, &Transform), With<Asteroid>>,
     mut commands: Commands,
     meshes: ResMut<Assets<Mesh>>,
     materials: ResMut<Assets<StandardMaterial>>,
     sphere_mesh: ResMut<SphereMesh>,
+    asset_server: Res<AssetServer>,
+    light_direction: Res<LightDirection>,
 ) {
-    let mut heights: Vec<f32> = vec![];
+    let mut new_vertices: Vec<Vec3> = vec![];
+    let mut normals: Vec<Vec3> = vec![];
 
     for ev in height_after_compute.read() {
-        heights = ev.0.clone();
+        new_vertices = ev.0.clone();
+        normals = ev.1.clone();
     }
 
-    if heights.len() == 0
+    if new_vertices.len() == 0
     {
         return;
     }
@@ -74,56 +112,16 @@ fn generate_mesh_from_new_vertices(
         commands.entity(asteroid_entity.0).despawn();
     }
 
-    let mesh = generate_mesh(sphere_mesh.vertices.clone(), heights, sphere_mesh.indices.clone());
-    render_generated_asteroid(commands, mesh, materials, meshes, rot);
+    let mesh = generate_mesh(new_vertices, sphere_mesh.indices.clone(), normals);
+    render_generated_asteroid(commands, mesh, materials, meshes, asset_server, rot, light_direction);
 }
 
-fn generate_mesh(vertices: Vec<Vec3>, heights: Vec<f32>, indices: Vec<u32>) -> Mesh {
-    let mut new_vertices = Vec::with_capacity(vertices.len());
-    new_vertices.extend(
-        vertices.into_iter().zip(heights.into_iter()).map(|(v, h)| v * h),
-    );
-
-    let start_time = Instant::now();
-    let normals = recalculate_normals(&new_vertices, &indices);
-    let duration = start_time.elapsed();
-    println!("Time taken to recalculate normals: {:?}", duration);
-    
+fn generate_mesh(vertices: Vec<Vec3>, indices: Vec<u32>, normals: Vec<Vec3>) -> Mesh {
     let mut mesh = Mesh::new(PrimitiveTopology::TriangleList, RenderAssetUsages::RENDER_WORLD | RenderAssetUsages::MAIN_WORLD);
-    mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION, new_vertices);
+    mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION, vertices);
     mesh.insert_attribute(Mesh::ATTRIBUTE_NORMAL, normals);
     mesh.insert_indices(Indices::U32(indices));
     mesh
-}
-
-fn recalculate_normals(vertices: &Vec<Vec3>, indices: &Vec<u32>) -> Vec<Vec3> {
-    let mut normals = vec![Vec3::ZERO; vertices.len()];
-
-    for triangle in indices.chunks(3) {
-        let i0 = triangle[0] as usize;
-        let i1 = triangle[1] as usize;
-        let i2 = triangle[2] as usize;
-
-        let v0 = vertices[i0];
-        let v1 = vertices[i1];
-        let v2 = vertices[i2];
-
-        let edge1 = v1 - v0;
-        let edge2 = v2 - v0;
-        let normal = edge1.cross(edge2);
-
-        // Accumulate the normal for each vertex
-        normals[i0] += normal;
-        normals[i1] += normal;
-        normals[i2] += normal;
-    }
-
-    // Normalize the accumulated normals
-    for normal in &mut normals {
-        *normal = normal.normalize();
-    }
-
-    normals
 }
 
 fn rotate_asteroid_mouse(
@@ -147,4 +145,3 @@ fn rotate_asteroid_mouse(
         }
     }
 }
-

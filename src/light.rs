@@ -3,9 +3,14 @@ use bevy::app::App;
 use bevy::color::Color;
 use bevy::math::{Quat, Vec3};
 use bevy::pbr::{CascadeShadowConfigBuilder, DirectionalLight, DirectionalLightBundle, DirectionalLightShadowMap, light_consts};
-use bevy::prelude::{Commands, default, Plugin, Startup, Transform};
+use bevy::prelude::{Commands, default, Plugin, Resource, Startup, Transform};
 
 pub struct LightPlugin;
+
+#[derive(Resource)]
+pub struct LightDirection {
+    pub direction: Vec3,
+}
 
 impl Plugin for LightPlugin {
     fn build(&self, app: &mut App) {
@@ -18,12 +23,16 @@ impl Plugin for LightPlugin {
 fn initialize_camera(
     mut commands: Commands
 ) {
+    let transform =Transform {
+        translation: Vec3::new(0.0, 2.0, 0.0),
+        rotation: Quat::from_rotation_x(-PI / 4.),
+        ..default()
+    };
+
+    let direction = (transform.rotation * Vec3::NEG_Z).normalize();
+    
     commands.spawn(DirectionalLightBundle {
-        transform: Transform {
-            translation: Vec3::new(0.0, 2.0, 0.0),
-            rotation: Quat::from_rotation_x(-PI / 4.),
-            ..default()
-        },
+        transform,
         directional_light: DirectionalLight {
             shadows_enabled: true,
             illuminance: light_consts::lux::AMBIENT_DAYLIGHT,
@@ -37,5 +46,9 @@ fn initialize_camera(
         }
             .into(),
         ..default()
+    });
+
+    commands.insert_resource(LightDirection {
+        direction,
     });
 }

@@ -19,3 +19,12 @@ impl ComputeShader for NormalComputeShader {
         "shaders/compute_normals.wgsl".into()
     }
 }
+
+#[derive(TypePath)]
+pub struct NormalizeNormalComputeShader;
+
+impl ComputeShader for NormalizeNormalComputeShader {
+    fn shader() -> ShaderRef {
+        "shaders/compute_normalize_normals.wgsl".into()
+    }
+}
