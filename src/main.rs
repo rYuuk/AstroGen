@@ -1,5 +1,5 @@
 use bevy::app::Update;
-use bevy::asset::{ AssetServer, Handle};
+use bevy::asset::AssetServer;
 use bevy::color::Color;
 use bevy::DefaultPlugins;
 use bevy::prelude::*;
@@ -15,7 +15,6 @@ use iyes_perf_ui::entries::PerfUiCompleteBundle;
 use iyes_perf_ui::PerfUiPlugin;
 use sickle_ui::prelude::*;
 use sickle_ui::SickleUiPlugin;
-use bevy::gltf;
 
 use compute::asteroid_terrain_generator::AsteroidGeneratorPlugin;
 use crate::asteroid_mesh::{AsteroidMeshPlugin};

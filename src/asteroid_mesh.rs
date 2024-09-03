@@ -1,15 +1,13 @@
-﻿use std::time::Instant;
-use bevy::asset::{Asset, Assets, AssetServer, Handle};
+﻿use bevy::asset::{Asset, Assets, AssetServer, Handle};
 use bevy::color::Color;
 use bevy::input::mouse::MouseMotion;
 use bevy::math::{Quat, Vec3};
-use bevy::pbr::{Material, MaterialMeshBundle, MaterialPlugin, PbrBundle, StandardMaterial};
-use bevy::prelude::{AlphaMode, App, ButtonInput, Commands, Component, default, Entity, EventReader, Gizmos, Image, Mesh, MouseButton, Plugin, Query, Res, ResMut, Transform, TypePath, Update, With};
-use bevy::render::mesh::{Indices, PrimitiveTopology, VertexAttributeValues};
+use bevy::pbr::{Material, MaterialMeshBundle, MaterialPlugin, StandardMaterial};
+use bevy::prelude::*;
+use bevy::render::mesh::{Indices, PrimitiveTopology};
 use bevy::render::render_asset::RenderAssetUsages;
 use bevy::render::render_resource::{AsBindGroup, ShaderRef};
 use crate::compute::event_handler::MeshDataAfterCompute;
-use crate::ExportButtonClicked;
 use crate::light::LightDirection;
 use crate::sphere_mesh::SphereMesh;
 
@@ -65,13 +63,7 @@ pub fn render_generated_asteroid(
                 perceptual_roughness: 0.9,
                 ..default()
             }),
-            // material: materials.add(TriplanarMaterial {
-            //     scale: 1.0,
-            //     blend_sharpness: 7.0,
-            //     main_texture: Some(asset_server.load("textures/MoonNoise.jpg")),
-            //     normal_map: Some(asset_server.load("textures/Craters.jpg")),
-            //     light_direction: light_direction.direction,
-            // }),
+        
             transform: Transform {
                 translation: Vec3::ZERO,
                 rotation: rot,

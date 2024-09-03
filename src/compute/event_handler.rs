@@ -1,11 +1,9 @@
-﻿use std::time::Instant;
-use bevy::math::{Vec3, Vec4};
-use bevy::prelude::{Event, EventReader, EventWriter, Local, ResMut};
-use bevy::render::render_resource::encase::private::RuntimeSizedArray;
+﻿use bevy::math::Vec3;
+use bevy::prelude::{Event, EventReader, EventWriter, ResMut};
 use bevy_easy_compute::prelude::AppComputeWorker;
+
 use crate::compute::asteroid_terrain_generator::{AsteroidComputeWorker, NormalAccumulator};
 use crate::RngSeed;
-use crate::sphere_mesh::SphereMesh;
 use crate::ui_widgets::crater_setting_widget::CraterSettingsChanged;
 use crate::ui_widgets::ridge_noise_setting_widget::RidgeNoiseSettingsChanged;
 use crate::ui_widgets::simple_noise_setting_widget::SimpleNoiseSettingsChanged;
@@ -86,7 +84,7 @@ pub fn receive_data_after_compute(
         let vertices = convert_array4_to_vec3(raw_vertices);
         let raw_normals: Vec<[f32; 4]> = compute_worker.read_vec("normals");
       
-        let mut normals = convert_array4_to_vec3(raw_normals);
+        let normals = convert_array4_to_vec3(raw_normals);
         data_after_compute.send(MeshDataAfterCompute(vertices, normals));
 
         // clear normal accumulators from previous run
