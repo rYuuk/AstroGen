@@ -21,24 +21,10 @@ pub fn on_crater_settings_changed(
         let crater_settings = &ev.0;
         let craters = crater_settings.get_craters(seed.0);
 
-        let (mut centres, mut radii, mut floor_heights, mut smoothness) =
-            (Vec::new(), Vec::new(), Vec::new(), Vec::new());
-
-        for crater in craters.iter() {
-            centres.push(crater.centre);
-            radii.push(crater.radius);
-            floor_heights.push(crater.floor_height);
-            smoothness.push(crater.smoothness);
-        }
-        
-        compute_worker.write_slice("num_craters", &[crater_settings.get_num_craters() as u32]);
+        compute_worker.write_slice("num_craters", &[craters.len() as u32]);
         compute_worker.write_slice("rim_steepness", &[crater_settings.get_rim_steepness()]);
         compute_worker.write_slice("rim_width", &[crater_settings.get_rim_width()]);
-        compute_worker.write_slice("craters_centre", &centres);
-        compute_worker.write_slice("craters_radius", &radii);
-        compute_worker.write_slice("craters_floor_height", &floor_heights);
-        compute_worker.write_slice("craters_smoothness", &smoothness);
-
+        compute_worker.write_slice("craters", &craters);
         compute_worker.execute();
     }
 }
@@ -80,11 +66,12 @@ pub fn receive_data_after_compute(
 ) {
     if compute_worker.ready() {
         let raw_vertices: Vec<[f32; 4]> = compute_worker.read_vec("new_vertices");
-        let vertex_count = raw_vertices.len();
-        let vertices = convert_array4_to_vec3(raw_vertices);
+        let vertices:Vec<Vec3> = convert_array4_to_vec3(raw_vertices);
+        let vertex_count = vertices.len();
+
         let raw_normals: Vec<[f32; 4]> = compute_worker.read_vec("normals");
-      
-        let normals = convert_array4_to_vec3(raw_normals);
+
+        let normals: Vec<Vec3> = convert_array4_to_vec3(raw_normals);
         data_after_compute.send(MeshDataAfterCompute(vertices, normals));
 
         // clear normal accumulators from previous run
@@ -93,12 +80,7 @@ pub fn receive_data_after_compute(
 }
 
 fn convert_array4_to_vec3(raw: Vec<[f32; 4]>) -> Vec<Vec3> {
-    let mut vec3s = Vec::with_capacity(raw.len());
-
-    for array in raw {
-        // Create a Vec3 from the first three elements of the array
-        vec3s.push(Vec3::new(array[0], array[1], array[2]));
-    }
-
-    vec3s
+    raw.into_iter()
+        .map(|[x, y, z, _]| Vec3::new(x, y, z))
+        .collect()
 }

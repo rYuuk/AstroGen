@@ -4,6 +4,7 @@ use bevy_easy_compute::prelude::{AppComputeWorker, AppComputeWorkerBuilder, AppC
 use crate::compute::asteroid_height_compute_shader::{AsteroidHeightComputeShader, NormalComputeShader, NormalizeNormalComputeShader};
 use crate::compute::event_handler;
 use crate::compute::event_handler::MeshDataAfterCompute;
+use crate::settings::crater_settings::{Crater, MAX_CRATER};
 use crate::sphere_mesh::SphereMesh;
 
 pub struct AsteroidGeneratorPlugin;
@@ -66,20 +67,18 @@ impl<'a> AsteroidComputeWorkerBuilder<'a> {
             .add_uniform("num_craters", &0)
             .add_uniform("rim_steepness", &0.0)
             .add_uniform("rim_width", &0.0)
-            .add_storage("craters_centre", &vec![Vec3::ZERO; 1000])
-            .add_storage("craters_radius", &vec![0.0; 1000])
-            .add_storage("craters_floor_height", &vec![0.0; 1000])
-            .add_storage("craters_smoothness", &vec![0.0; 1000])
+            .add_storage("craters", &[Crater::default(); MAX_CRATER])
             .add_storage("indices", &self.sphere_mesh.indices)
             .add_uniform("num_indices", &(indices_len as u32))
             .add_staging("num_triangles", &(num_triangles as u32))
             .add_staging("normals", &vec![Vec3::ZERO; len])
             .add_staging("normal_accumulators", &vec![NormalAccumulator::default(); len])
+          
             .add_pass::<AsteroidHeightComputeShader>([256, 1, 1], &[
                 "vertices", "new_vertices", "num_vertices",
                 "noise_params_shape", "noise_params_ridge", "noise_params_ridge2",
                 "num_craters", "rim_steepness", "rim_width",
-                "craters_centre", "craters_radius", "craters_floor_height", "craters_smoothness",
+                "craters"
             ])
             .add_pass::<NormalComputeShader>([256, 1, 1], &[
                 "new_vertices", "indices", "normal_accumulators", "num_triangles"

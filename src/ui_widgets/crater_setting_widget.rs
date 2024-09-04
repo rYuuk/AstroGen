@@ -2,7 +2,7 @@
 use bevy::reflect::{DynamicStruct, Reflect};
 use sickle_ui::prelude::*;
 use sickle_ui::ui_builder::UiBuilder;
-use crate::settings::crater_settings::CraterSettings;
+use crate::settings::crater_settings::{CraterSettings, MAX_CRATER};
 
 pub struct CraterSettingPlugin;
 
@@ -44,7 +44,7 @@ impl CraterSettingWidgetExt for UiBuilder<'_, Entity> {
             column.slider(SliderConfig::horizontal(
                 "num_craters".to_string(),
                 0.,
-                1000.0,
+                MAX_CRATER as f32,
                 3.,
                 true,
             ))

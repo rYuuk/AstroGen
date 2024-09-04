@@ -5,7 +5,8 @@ use crate::utils::{PRNG};
 use rand::rngs::StdRng;
 use rand::SeedableRng;
 
-#[derive(ShaderType,Default, Clone, Copy)]
+#[repr(C)]
+#[derive(ShaderType, Clone, Default, Copy, bytemuck::Pod, bytemuck::Zeroable)]
 pub struct Crater {
     pub centre: Vec3,
     pub radius: f32,
@@ -25,6 +26,7 @@ pub struct CraterSettings {
     size_distribution: f32,
 }
 const CRATER_SEED: u64 = 2;
+pub const MAX_CRATER: usize = 2000;
 
 impl CraterSettings {
     pub fn get_num_craters(&self) -> f32
