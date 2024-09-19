@@ -1,19 +1,16 @@
-#import "shaders/normal_utils.wgsl"::{NormalAccumulator,float_to_int}
+#import "shaders/utils.wgsl"::{NormalAccumulator,float_to_int}
 
 @group(0) @binding(0) var<storage, read> new_vertices: array<vec3<f32>>;
 @group(0) @binding(1) var<storage, read> indices: array<u32>;
 @group(0) @binding(2) var<storage, read_write> normal_accumulators: array<NormalAccumulator>;
 @group(0) @binding(3) var<storage, read_write> num_triangles: u32;
 
-@compute @workgroup_size(256)
-fn main(@builtin(global_invocation_id) global_id: vec3<u32>,@builtin(num_workgroups) num_workgroups: vec3<u32>) {
-     let total_threads = num_workgroups.x * 256u;
-     let triangles_per_thread = (num_triangles + total_threads - 1u) / total_threads;
+@compute @workgroup_size(64)
+fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
      
-     for (var i = 0u; i < triangles_per_thread; i = i + 1u) {
-         let triangle_index = global_id.x * triangles_per_thread + i;
+       let triangle_index = global_id.x;
          if (triangle_index >= num_triangles) {
-             break;
+             return ;
          }
 
         let index_offset = triangle_index * 3u;
@@ -46,6 +43,5 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>,@builtin(num_workgro
         atomicAdd(&normal_accumulators[i2].x, normal_int.x);
         atomicAdd(&normal_accumulators[i2].y, normal_int.y);
         atomicAdd(&normal_accumulators[i2].z, normal_int.z);
-    }   
 }
 

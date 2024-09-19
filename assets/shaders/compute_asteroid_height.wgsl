@@ -8,15 +8,12 @@
 @group(0) @binding(4) var<storage, read> noise_params_ridge: array<vec4<f32>,3>;
 @group(0) @binding(5) var<storage, read> noise_params_ridge2: array<vec4<f32>,3>;
  
-@compute @workgroup_size(256)
-fn main(@builtin(global_invocation_id) global_id: vec3<u32>, @builtin(num_workgroups) num_workgroups: vec3<u32>) {
-    let total_threads = num_workgroups.x * 256u;
-    let vertices_per_thread = (num_vertices + total_threads - 1u) / total_threads;
-    
-    for (var i = 0u; i < vertices_per_thread; i = i + 1u) {
-        let index = global_id.x * vertices_per_thread + i;
+@compute @workgroup_size(64)
+fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
+        
+        let index = global_id.x;
         if (index >= num_vertices) {
-            break;
+            return ;
         }
 
         let vertexPos = vertices[index];
@@ -33,5 +30,4 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>, @builtin(num_workgr
         let noiseSum = (shapeNoise + ridgeNoise + ridge2) * elevationMultiplier;
         let finalHeight = 1 + craterDepth + noiseSum;
         new_vertices[index] = vertexPos * finalHeight;
-    }
 }

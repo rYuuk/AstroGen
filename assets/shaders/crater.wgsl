@@ -1,4 +1,4 @@
-#import "shaders/math.wgsl"::{smooth_max, smooth_min}
+#import "shaders/utils.wgsl"::{smooth_max, smooth_min}
 
 struct Crater {
     centre: array<f32,3>,

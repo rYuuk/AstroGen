@@ -1,7 +1,8 @@
 use bevy::math::Vec3;
 use bevy::prelude::{Commands, Event, EventReader, ResMut};
 use bevy_easy_compute::prelude::AppComputeWorker;
-use crate::compute::asteroid_terrain_generator::{AsteroidComputeWorker, NormalAccumulator};
+use crate::compute::asteroid_height_compute_shader::NormalAccumulator;
+use crate::compute::asteroid_terrain_generator::{AsteroidComputeWorker};
 use crate::sphere_mesh::SphereMesh;
 use crate::ui_widgets::crater_setting_widget::CraterSettingsChanged;
 use crate::ui_widgets::ridge_noise_setting_widget::RidgeNoiseSettingsChanged;
@@ -21,6 +22,7 @@ pub fn on_crater_settings_changed(
         let crater_settings = &ev.0;
         let craters = crater_settings.get_craters(seed.0);
 
+       
         compute_worker.write_slice("num_craters", &[craters.len() as u32]);
         compute_worker.write_slice("rim_steepness", &[crater_settings.get_rim_steepness()]);
         compute_worker.write_slice("rim_width", &[crater_settings.get_rim_width()]);
@@ -71,7 +73,6 @@ pub fn receive_data_after_compute(
         let vertices:Vec<Vec3> = convert_array4_to_vec3(raw_vertices);
         
         let raw_normals: Vec<[f32; 4]> = compute_worker.read_vec("normals");
-        
         let normals: Vec<Vec3> = convert_array4_to_vec3(raw_normals);
 
         commands.trigger(MeshDataAfterCompute(

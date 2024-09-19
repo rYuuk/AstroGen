@@ -1,13 +1,10 @@
 use bevy::math::Vec3;
 use bevy::prelude::{App, Plugin, Resource, Update, World};
 use bevy_easy_compute::prelude::{
-    AppComputeWorker, AppComputeWorkerBuilder, AppComputeWorkerPlugin, ComputeWorker, ShaderType,
+    AppComputeWorker, AppComputeWorkerBuilder, AppComputeWorkerPlugin, ComputeWorker,
 };
-use bytemuck::{Pod, Zeroable};
 
-use crate::compute::asteroid_height_compute_shader::{
-    AsteroidHeightComputeShader, NormalComputeShader, NormalizeNormalComputeShader,
-};
+use crate::compute::asteroid_height_compute_shader::{AsteroidHeightComputeShader, NormalAccumulator, NormalComputeShader, NormalizeNormalComputeShader};
 use crate::compute::event_handler;
 use crate::compute::event_handler::MeshDataAfterCompute;
 use crate::settings::crater_settings::{Crater, MAX_CRATER};
@@ -31,14 +28,6 @@ impl Plugin for AsteroidGeneratorPlugin {
     }
 }
 
-#[repr(C)]
-#[derive(ShaderType, Clone, Default, Copy, Pod, Zeroable)]
-pub struct NormalAccumulator {
-    pub x: i32,
-    pub y: i32,
-    pub z: i32,
-}
-
 #[derive(Resource)]
 pub struct AsteroidComputeWorker;
 
@@ -60,18 +49,23 @@ impl<'a> AsteroidComputeWorkerBuilder<'a> {
     }
 
     fn build(self) -> AppComputeWorker<AsteroidComputeWorker> {
-        let len = self.sphere_mesh.vertices.len();
+        let vertex_count = self.sphere_mesh.vertices.len();
         let noise_params: Vec<[f32; 4]> = vec![[0.0; 4]; 3];
         let indices_len = self.sphere_mesh.indices.len();
         let num_triangles = indices_len / 3;
 
+        let workgroup_size = 64; // This should match @workgroup_size in the shader
+        let num_workgroups = (vertex_count + workgroup_size - 1) / workgroup_size;
+
+        let num_workgroups_normal = (num_triangles + workgroup_size - 1) / workgroup_size;
+
         let worker = AppComputeWorkerBuilder::new(self.world)
             .add_storage("vertices", &self.sphere_mesh.vertices)
-            .add_staging("new_vertices", &vec![Vec3::ZERO; len])
-            .add_uniform("num_vertices", &(len as u32))
+            .add_staging("normals", &vec![Vec3::ZERO; vertex_count])
+            .add_storage("indices", &self.sphere_mesh.indices)
+            .add_uniform("num_vertices", &(vertex_count as u32))
             .add_staging("num_triangles", &(num_triangles as u32))
-            .add_staging("normals", &vec![Vec3::ZERO; len])
-            
+            .add_staging("new_vertices", &vec![Vec3::ZERO; vertex_count])
             .add_storage("noise_params_shape", &noise_params)
             .add_storage("noise_params_ridge", &noise_params)
             .add_storage("noise_params_ridge2", &noise_params)
@@ -79,14 +73,13 @@ impl<'a> AsteroidComputeWorkerBuilder<'a> {
             .add_uniform("rim_steepness", &0.0)
             .add_uniform("rim_width", &0.0)
             .add_storage("craters", &[Crater::default(); MAX_CRATER])
-            .add_storage("indices", &self.sphere_mesh.indices)
-        
+
             .add_staging(
                 "normal_accumulators",
-                &vec![NormalAccumulator::default(); len],
+                &vec![NormalAccumulator::default(); vertex_count],
             )
             .add_pass::<AsteroidHeightComputeShader>(
-                [256, 1, 1],
+                [num_workgroups as u32, 1, 1],
                 &[
                     "vertices",
                     "new_vertices",
@@ -101,7 +94,7 @@ impl<'a> AsteroidComputeWorkerBuilder<'a> {
                 ],
             )
             .add_pass::<NormalComputeShader>(
-                [256, 1, 1],
+                [num_workgroups_normal as u32, 1, 1],
                 &[
                     "new_vertices",
                     "indices",
@@ -110,8 +103,12 @@ impl<'a> AsteroidComputeWorkerBuilder<'a> {
                 ],
             )
             .add_pass::<NormalizeNormalComputeShader>(
-                [256, 1, 1],
-                &["normal_accumulators", "num_vertices", "normals"],
+                [num_workgroups as u32, 1, 1],
+                &[
+                    "normal_accumulators",
+                    "num_vertices",
+                    "normals"
+                ],
             )
             .one_shot()
             .build();

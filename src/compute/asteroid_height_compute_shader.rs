@@ -1,6 +1,7 @@
 ﻿use bevy::prelude::TypePath;
-use bevy::render::render_resource::ShaderRef;
+use bevy::render::render_resource::{ShaderRef, ShaderType};
 use bevy_easy_compute::prelude::ComputeShader;
+use bytemuck::{Pod, Zeroable};
 
 #[derive(TypePath)]
 pub struct AsteroidHeightComputeShader;
@@ -28,3 +29,12 @@ impl ComputeShader for NormalizeNormalComputeShader {
         "shaders/compute_normalize_normals.wgsl".into()
     }
 }
+
+#[repr(C)]
+#[derive(ShaderType, Clone, Default, Copy, Pod, Zeroable)]
+pub struct NormalAccumulator {
+    pub x: i32,
+    pub y: i32,
+    pub z: i32,
+}
+
