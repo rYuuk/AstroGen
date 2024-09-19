@@ -1,7 +1,7 @@
-﻿use bevy::math::{FloatExt, Vec3};
+use crate::utils::PRNG;
+use bevy::math::{FloatExt, Vec3};
 use bevy::prelude::{Reflect, Resource};
 use bevy::render::render_resource::ShaderType;
-use crate::utils::{PRNG};
 use rand::rngs::StdRng;
 use rand::SeedableRng;
 
@@ -29,18 +29,11 @@ const CRATER_SEED: u64 = 2;
 pub const MAX_CRATER: usize = 2000;
 
 impl CraterSettings {
-    pub fn get_num_craters(&self) -> f32
-    {
-        self.num_craters
-    }
-
-    pub fn get_rim_steepness(&self) -> f32
-    {
+    pub fn get_rim_steepness(&self) -> f32 {
         self.rim_steepness
     }
 
-    pub fn get_rim_width(&self) -> f32
-    {
+    pub fn get_rim_width(&self) -> f32 {
         self.rim_width
     }
 

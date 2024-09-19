@@ -1,7 +1,10 @@
-﻿use bevy::app::App;
+use bevy::app::App;
 use bevy::input::mouse::MouseWheel;
 use bevy::math::Vec3;
-use bevy::prelude::{Camera3dBundle, Commands, Component, default, EventReader, PerspectiveProjection, Plugin, Query, Startup, Transform, Update, With};
+use bevy::prelude::{
+    default, Camera3dBundle, Commands, Component, EventReader, PerspectiveProjection, Plugin,
+    Query, Startup, Transform, Update, With,
+};
 pub struct MainCameraPlugin;
 
 #[derive(Component)]
@@ -9,24 +12,25 @@ struct MainCamera;
 
 impl Plugin for MainCameraPlugin {
     fn build(&self, app: &mut App) {
-        app
-            .add_systems(Startup, initialize_camera)
+        app.add_systems(Startup, initialize_camera)
             .add_systems(Update, zoom_camera);
     }
 }
 
 fn initialize_camera(mut commands: Commands) {
-    commands.spawn((Camera3dBundle {
-        transform: Transform::from_xyz(0.0, 0.0, 9.0)
-            .looking_at(Vec3::new(0.0, 0.0, 0.0), Vec3::Y),
-        projection: PerspectiveProjection {
-            fov: 45.0f32.to_radians(),
-            ..default()
-        }
+    commands.spawn((
+        Camera3dBundle {
+            transform: Transform::from_xyz(0.0, 0.0, 9.0)
+                .looking_at(Vec3::new(0.0, 0.0, 0.0), Vec3::Y),
+            projection: PerspectiveProjection {
+                fov: 45.0f32.to_radians(),
+                ..default()
+            }
             .into(),
-        ..default()
-    }, MainCamera),
-    );
+            ..default()
+        },
+        MainCamera,
+    ));
 }
 
 fn zoom_camera(

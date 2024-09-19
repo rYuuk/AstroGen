@@ -1,13 +1,13 @@
-﻿use bevy::math::Vec3;
-use bevy::prelude::{Event, EventReader, EventWriter, ResMut};
+use bevy::math::Vec3;
+use bevy::prelude::{Commands, Event, EventReader, ResMut};
 use bevy_easy_compute::prelude::AppComputeWorker;
-
 use crate::compute::asteroid_terrain_generator::{AsteroidComputeWorker, NormalAccumulator};
-use crate::RngSeed;
+use crate::sphere_mesh::SphereMesh;
 use crate::ui_widgets::crater_setting_widget::CraterSettingsChanged;
 use crate::ui_widgets::ridge_noise_setting_widget::RidgeNoiseSettingsChanged;
 use crate::ui_widgets::simple_noise_setting_widget::SimpleNoiseSettingsChanged;
 use crate::utils::PRNG;
+use crate::RngSeed;
 
 #[derive(Event)]
 pub struct MeshDataAfterCompute(pub Vec<Vec3>, pub Vec<Vec3>);
@@ -62,25 +62,33 @@ pub fn on_ridge_settings_changed(
 
 pub fn receive_data_after_compute(
     mut compute_worker: ResMut<AppComputeWorker<AsteroidComputeWorker>>,
-    mut data_after_compute: EventWriter<MeshDataAfterCompute>,
+    sphere_mesh: ResMut<SphereMesh>,
+    mut commands: Commands
 ) {
     if compute_worker.ready() {
+      
         let raw_vertices: Vec<[f32; 4]> = compute_worker.read_vec("new_vertices");
         let vertices:Vec<Vec3> = convert_array4_to_vec3(raw_vertices);
-        let vertex_count = vertices.len();
-
+        
         let raw_normals: Vec<[f32; 4]> = compute_worker.read_vec("normals");
-
+        
         let normals: Vec<Vec3> = convert_array4_to_vec3(raw_normals);
-        data_after_compute.send(MeshDataAfterCompute(vertices, normals));
 
+        commands.trigger(MeshDataAfterCompute(
+            vertices,
+            normals
+        ));
+        
         // clear normal accumulators from previous run
-        compute_worker.write_slice("normal_accumulators", &vec![NormalAccumulator::default(); vertex_count]);
+        compute_worker.write_slice(
+            "normal_accumulators",
+            &vec![NormalAccumulator::default(); sphere_mesh.vertices.len()],
+        );
     }
 }
 
 fn convert_array4_to_vec3(raw: Vec<[f32; 4]>) -> Vec<Vec3> {
     raw.into_iter()
-        .map(|[x, y, z, _]| Vec3::new(x, y, z))
+        .map(|[x, y, z,_]| Vec3::new(x, y, z))
         .collect()
 }

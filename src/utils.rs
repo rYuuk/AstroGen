@@ -1,19 +1,19 @@
-﻿use bevy::math::Vec3;
-use rand::{Rng, SeedableRng};
+use bevy::math::Vec3;
 use rand::distributions::{Distribution, Uniform};
 use rand::prelude::StdRng;
+use rand::{Rng, SeedableRng};
 
 pub struct PRNG {
-    pub rng: StdRng
+    pub rng: StdRng,
 }
 
 impl PRNG {
-    pub fn new(seed: u64) -> Self{
+    pub fn new(seed: u64) -> Self {
         PRNG {
-            rng: StdRng::seed_from_u64(seed)
+            rng: StdRng::seed_from_u64(seed),
         }
     }
-    
+
     pub fn get_value(&mut self) -> f32 {
         let uniform = Uniform::new_inclusive(0.0, 1.0);
 
@@ -21,7 +21,7 @@ impl PRNG {
     }
 
     pub fn value_bias_lower(&mut self, bias_strength: f32) -> f32 {
-        let t = self.get_value();  // Random value [0, 1]
+        let t = self.get_value(); // Random value [0, 1]
 
         // Avoid possible division by zero
         if bias_strength == 1.0 {

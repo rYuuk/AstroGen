@@ -1,8 +1,8 @@
-﻿use bevy::prelude::*;
-use bevy::reflect::{DynamicStruct, Reflect, Typed, TypeInfo};
+use crate::settings::simple_noise_settings::SimpleNoiseSettings;
+use bevy::prelude::*;
+use bevy::reflect::{DynamicStruct, Reflect, TypeInfo, Typed};
 use sickle_ui::prelude::*;
 use sickle_ui::ui_builder::UiBuilder;
-use crate::settings::simple_noise_settings::SimpleNoiseSettings;
 
 pub struct SimpleNoisePlugin;
 
@@ -11,8 +11,7 @@ pub struct SimpleNoiseSettingsChanged(pub SimpleNoiseSettings);
 
 impl Plugin for SimpleNoisePlugin {
     fn build(&self, app: &mut App) {
-        app
-            .add_event::<SimpleNoiseSettingsChanged>()
+        app.add_event::<SimpleNoiseSettingsChanged>()
             .add_systems(Update, get_value_changed);
     }
 }
@@ -42,32 +41,38 @@ impl SimpleNoiseSettingWidget {
     }
 
     fn frame() -> impl Bundle {
-        (Name::new("Simple Noise Setting Widget"), NodeBundle::default())
+        (
+            Name::new("Simple Noise Setting Widget"),
+            NodeBundle::default(),
+        )
     }
 }
 
 pub trait SimpleNoiseWidgetExt {
-    fn create_simple_noise_setting_widget(&mut self, spawn_children: impl FnOnce(&mut UiBuilder<Entity>)) -> UiBuilder<Entity>;
+    fn create_simple_noise_setting_widget(
+        &mut self,
+        spawn_children: impl FnOnce(&mut UiBuilder<Entity>),
+    ) -> UiBuilder<Entity>;
 }
 
 impl SimpleNoiseWidgetExt for UiBuilder<'_, Entity> {
-    fn create_simple_noise_setting_widget(&mut self, spawn_children: impl FnOnce(&mut UiBuilder<Entity>)) -> UiBuilder<Entity> {
+    fn create_simple_noise_setting_widget(
+        &mut self,
+        spawn_children: impl FnOnce(&mut UiBuilder<Entity>),
+    ) -> UiBuilder<Entity> {
         let widget = SimpleNoiseSettingWidget::default();
         let labels = widget.get_labels();
-        let mut builder = self.container((SimpleNoiseSettingWidget::frame(), widget), spawn_children);
-        builder.column(|column| {
-            column.label(LabelConfig::from("Simple Noise Settings"));
-            for name in labels {
-                column.slider(SliderConfig::horizontal(
-                    name,
-                    0.,
-                    10.0,
-                    0.,
-                    true,
-                ))
-                    .insert(ValueChanged);
-            }
-        })
+        let mut builder =
+            self.container((SimpleNoiseSettingWidget::frame(), widget), spawn_children);
+        builder
+            .column(|column| {
+                column.label(LabelConfig::from("Simple Noise Settings"));
+                for name in labels {
+                    column
+                        .slider(SliderConfig::horizontal(name, 0., 10.0, 0., true))
+                        .insert(ValueChanged);
+                }
+            })
             .style()
             .justify_content(JustifyContent::FlexStart)
             .background_color(Color::srgb(0.3, 0.3, 0.3))
@@ -80,8 +85,7 @@ fn get_value_changed(
     mut query: Query<&mut Slider, (With<ValueChanged>, Changed<Slider>)>,
     mut widget_query: Query<&mut SimpleNoiseSettingWidget>,
     mut simple_noise_setting_changed: EventWriter<SimpleNoiseSettingsChanged>,
-)
-{
+) {
     for slider_bar in query.iter_mut() {
         for mut widget in widget_query.iter_mut() {
             let field = slider_bar.config().clone().label.unwrap();

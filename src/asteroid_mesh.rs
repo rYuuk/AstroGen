@@ -1,4 +1,4 @@
-﻿use bevy::asset::{Asset, Assets, AssetServer, Handle};
+﻿use bevy::asset::{Asset, Assets, Handle};
 use bevy::color::Color;
 use bevy::input::mouse::MouseMotion;
 use bevy::math::{Quat, Vec3};
@@ -17,7 +17,8 @@ impl Plugin for AsteroidMeshPlugin {
     fn build(&self, app: &mut App) {
         app
             .add_plugins(MaterialPlugin::<TriplanarMaterial>::default())
-            .add_systems(Update, (generate_mesh_from_new_vertices, rotate_asteroid_mouse));
+            .observe(generate_mesh_from_new_vertices)
+            .add_systems(Update, rotate_asteroid_mouse);
     }
 }
 
@@ -51,9 +52,7 @@ pub fn render_generated_asteroid(
     mesh: Mesh,
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut meshes: ResMut<Assets<Mesh>>,
-    asset_server: Res<AssetServer>,
     rot: Quat,
-    light_direction: Res<LightDirection>,
 ) {
     commands.spawn((
         MaterialMeshBundle {
@@ -63,7 +62,7 @@ pub fn render_generated_asteroid(
                 perceptual_roughness: 0.9,
                 ..default()
             }),
-        
+
             transform: Transform {
                 translation: Vec3::ZERO,
                 rotation: rot,
@@ -75,24 +74,19 @@ pub fn render_generated_asteroid(
     ));
 }
 fn generate_mesh_from_new_vertices(
-    mut height_after_compute: EventReader<MeshDataAfterCompute>,
+    trigger: Trigger<MeshDataAfterCompute>,
     asteroid_query: Query<(Entity, &Transform), With<Asteroid>>,
     mut commands: Commands,
     meshes: ResMut<Assets<Mesh>>,
     materials: ResMut<Assets<StandardMaterial>>,
     sphere_mesh: ResMut<SphereMesh>,
-    asset_server: Res<AssetServer>,
     light_direction: Res<LightDirection>,
 ) {
-    let mut new_vertices: Vec<Vec3> = vec![];
-    let mut normals: Vec<Vec3> = vec![];
+    let ev = trigger.event();
+    let new_vertices = ev.0.clone();
+    let normals = ev.1.clone();
 
-    for ev in height_after_compute.read() {
-        new_vertices = ev.0.clone();
-        normals = ev.1.clone();
-    }
-
-    if new_vertices.len() == 0
+    if new_vertices.is_empty()
     {
         return;
     }
@@ -105,7 +99,7 @@ fn generate_mesh_from_new_vertices(
     }
 
     let mesh = generate_mesh(new_vertices, sphere_mesh.indices.clone(), normals);
-    render_generated_asteroid(commands, mesh, materials, meshes, asset_server, rot, light_direction);
+    render_generated_asteroid(commands, mesh, materials, meshes, rot);
 }
 
 fn generate_mesh(vertices: Vec<Vec3>, indices: Vec<u32>, normals: Vec<Vec3>) -> Mesh {

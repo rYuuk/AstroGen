@@ -1,17 +1,17 @@
-﻿use gltf_json as json;
+use gltf_json as json;
 
 use std::{fs, mem};
 
-use json::validation::Checked::Valid;
-use json::validation::USize64;
-use std::borrow::Cow;
-use std::io::Write;
+use crate::asteroid_mesh::Asteroid;
+use crate::ExportButtonClicked;
 use bevy::app::{App, Plugin, Update};
 use bevy::asset::{Assets, Handle};
 use bevy::prelude::{EventReader, Mesh, Query, Res, With};
 use bevy::render::mesh::{Indices, VertexAttributeValues};
-use crate::asteroid_mesh::Asteroid;
-use crate::ExportButtonClicked;
+use json::validation::Checked::Valid;
+use json::validation::USize64;
+use std::borrow::Cow;
+use std::io::Write;
 
 pub struct GlTFExporter;
 
@@ -33,18 +33,18 @@ fn export_gltf(
     asteroid_query: Query<&Handle<Mesh>, With<Asteroid>>,
     mut on_export_clicked: EventReader<ExportButtonClicked>,
     meshes: Res<Assets<Mesh>>,
-)
-{
+) {
     for _ in on_export_clicked.read() {
         let mesh_handle = asteroid_query.get_single().unwrap();
-
 
         if let Some(mesh) = meshes.get(&*mesh_handle) {
             let mut mesh_vertices: &Vec<[f32; 3]> = &vec![];
             let mut mesh_normals: &Vec<[f32; 3]> = &vec![];
             let mut mesh_indices: &Vec<u32> = &vec![];
 
-            if let Some(VertexAttributeValues::Float32x3(vertices)) = mesh.attribute(Mesh::ATTRIBUTE_POSITION) {
+            if let Some(VertexAttributeValues::Float32x3(vertices)) =
+                mesh.attribute(Mesh::ATTRIBUTE_POSITION)
+            {
                 mesh_vertices = vertices;
             } else {
                 println!("Vertices not found or not in Float32x3 format.");
@@ -63,7 +63,9 @@ fn export_gltf(
                 println!("Mesh has no indices.");
             }
 
-            if let Some(VertexAttributeValues::Float32x3(normals)) = mesh.attribute(Mesh::ATTRIBUTE_NORMAL) {
+            if let Some(VertexAttributeValues::Float32x3(normals)) =
+                mesh.attribute(Mesh::ATTRIBUTE_NORMAL)
+            {
                 mesh_normals = normals;
             } else {
                 println!("Vertex normals not found or not in Float32x3 format.");
@@ -141,7 +143,9 @@ fn export(vertices: &Vec<[f32; 3]>, indices: &Vec<u32>, normals: &Vec<[f32; 3]>)
     let index_buffer_view = root.push(json::buffer::View {
         buffer,
         byte_length: USize64::from(indices_length),
-        byte_offset: Some(USize64::from(positions_length + colors_length + normals_length)),
+        byte_offset: Some(USize64::from(
+            positions_length + colors_length + normals_length,
+        )),
         byte_stride: None,
         extensions: Default::default(),
         extras: Default::default(),
@@ -233,7 +237,6 @@ fn export(vertices: &Vec<[f32; 3]>, indices: &Vec<u32>, normals: &Vec<[f32; 3]>)
         targets: None,
     };
 
-
     let mesh = root.push(json::Mesh {
         extensions: Default::default(),
         extras: Default::default(),
@@ -320,9 +323,8 @@ fn align_to_multiple_of_four(n: &mut usize) {
 
 fn to_padded_byte_vector<T>(vec: &[T]) -> Vec<u8> {
     let byte_length = vec.len() * mem::size_of::<T>();
-    let mut new_vec = unsafe {
-        std::slice::from_raw_parts(vec.as_ptr() as *const u8, byte_length).to_vec()
-    };
+    let mut new_vec =
+        unsafe { std::slice::from_raw_parts(vec.as_ptr() as *const u8, byte_length).to_vec() };
     while new_vec.len() % 4 != 0 {
         new_vec.push(0); // pad to multiple of four bytes
     }

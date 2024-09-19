@@ -1,4 +1,4 @@
-﻿use bevy::prelude::*;
+use bevy::prelude::*;
 
 #[derive(Resource)]
 pub struct SphereMesh {
@@ -10,7 +10,8 @@ impl SphereMesh {
     pub fn new(resolution: usize) -> Self {
         let resolution = resolution.max(0);
         let num_divisions = resolution;
-        let num_verts_per_face = ((num_divisions + 3) * (num_divisions + 3) - (num_divisions + 3)) / 2;
+        let num_verts_per_face =
+            ((num_divisions + 3) * (num_divisions + 3) - (num_divisions + 3)) / 2;
         let num_verts = num_verts_per_face * 8 - (num_divisions + 2) * 12 + 6;
         let num_tris_per_face = (num_divisions + 1) * (num_divisions + 1);
 
@@ -19,12 +20,12 @@ impl SphereMesh {
 
         // The six initial vertices
         let base_vertices = [
-            Vec3::Y,   // up
-            -Vec3::X,  // left
-            -Vec3::Z,  // back
-            Vec3::X,   // right
-            Vec3::Z,   // forward
-            -Vec3::Y,  // down
+            Vec3::Y,  // up
+            -Vec3::X, // left
+            -Vec3::Z, // back
+            Vec3::X,  // right
+            Vec3::Z,  // forward
+            -Vec3::Y, // down
         ];
 
         vertices.extend_from_slice(&base_vertices);
@@ -81,10 +82,7 @@ impl SphereMesh {
             );
         }
 
-        SphereMesh {
-            vertices,
-            indices,
-        }
+        SphereMesh { vertices, indices }
     }
 
     fn create_face(
