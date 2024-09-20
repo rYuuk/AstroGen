@@ -16,15 +16,17 @@ pub struct Crater {
 
 #[derive(Resource, Default, Debug, Reflect, Clone)]
 pub struct CraterSettings {
-    num_craters: f32,
-    crater_size_min: f32,
-    crater_size_max: f32,
-    rim_steepness: f32,
-    rim_width: f32,
-    smooth_min: f32,
-    smooth_max: f32,
-    size_distribution: f32,
+    pub num_craters: f32,
+    pub crater_size_min: f32,
+    pub crater_size_max: f32,
+    pub rim_steepness: f32,
+    pub rim_width: f32,
+    pub smooth_min: f32,
+    pub smooth_max: f32,
+    pub size_distribution: f32,
 }
+
+
 const CRATER_SEED: u64 = 2;
 pub const MAX_CRATER: usize = 2000;
 

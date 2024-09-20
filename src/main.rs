@@ -6,15 +6,15 @@ use bevy::text::TextStyle;
 use bevy::ui::{
     AlignItems, BackgroundColor, BorderRadius, Interaction, JustifyContent, Style, UiRect, Val,
 };
+use bevy::{diagnostic::FrameTimeDiagnosticsPlugin, prelude::*};
 use bevy::utils::default;
 use bevy::winit::WinitSettings;
 use bevy::DefaultPlugins;
 use bevy_easy_compute::prelude::AppComputePlugin;
+use bevy_egui::EguiPlugin;
 use bevy_embedded_assets::{EmbeddedAssetPlugin, PluginMode};
 #[cfg(feature = "diagnostics")]
 use iyes_perf_ui::entries::PerfUiCompleteBundle;
-#[cfg(feature = "diagnostics")]
-use iyes_perf_ui::PerfUiPlugin;
 use sickle_ui::prelude::*;
 use sickle_ui::SickleUiPlugin;
 
@@ -26,6 +26,8 @@ use crate::ui_widgets::crater_setting_widget::{CraterSettingPlugin, CraterSettin
 use crate::ui_widgets::ridge_noise_setting_widget::{RidgeNoisePlugin, RidgeNoiseSettingWidgetExt};
 use crate::ui_widgets::simple_noise_setting_widget::{SimpleNoisePlugin, SimpleNoiseWidgetExt};
 use compute::asteroid_terrain_generator::AsteroidGeneratorPlugin;
+use crate::ui_asteroid_settings::UIAsteroidSettings;
+use crate::settings::asteroid_settings::AsteroidSettings;
 
 mod asteroid_mesh;
 mod compute;
@@ -36,12 +38,16 @@ mod settings;
 mod sphere_mesh;
 mod ui_widgets;
 mod utils;
+mod ui_asteroid_settings;
 
 #[derive(Resource)]
 struct RngSeed(u64);
 
 #[derive(Component)]
 struct ExportButton;
+
+#[derive(Event)]
+pub struct ExportButtonClicked;
 
 fn main() {
     App::new()
@@ -57,39 +63,27 @@ fn main() {
             }),
             ..default()
         }))
-        .add_plugins(SickleUiPlugin)
-        .add_plugins(AppComputePlugin)
-        .add_plugins(AsteroidGeneratorPlugin)
-        .add_plugins(AsteroidMeshPlugin)
-        .add_plugins(GlTFExporter)
-        .add_diagnostics()
-        .add_plugins((MainCameraPlugin, LightPlugin))
-        .add_plugins(CraterSettingPlugin)
-        .add_plugins(SimpleNoisePlugin)
-        .add_plugins(RidgeNoisePlugin)
+        .add_plugins((EguiPlugin,
+                      FrameTimeDiagnosticsPlugin,
+                      SickleUiPlugin,
+                      AppComputePlugin,
+                      AsteroidGeneratorPlugin,
+                      AsteroidMeshPlugin,
+                      UIAsteroidSettings,
+                      GlTFExporter,
+                      MainCameraPlugin,
+                      LightPlugin,
+                      CraterSettingPlugin,
+                      SimpleNoisePlugin,
+                      RidgeNoisePlugin))
         .insert_resource(RngSeed(2))
         .add_event::<ExportButtonClicked>()
+        .insert_resource(AsteroidSettings::default())
         .add_systems(Startup, setup)
         .add_systems(Update, button_system)
         .run();
 }
 
-pub trait AddDiagnostics {
-    fn add_diagnostics(&mut self) -> &mut Self;
-}
-
-impl AddDiagnostics for App {
-    fn add_diagnostics(&mut self) -> &mut Self {
-        #[cfg(feature = "diagnostics")]
-        {
-            self.add_plugins(bevy::diagnostic::FrameTimeDiagnosticsPlugin)
-                .add_plugins(bevy::diagnostic::EntityCountDiagnosticsPlugin)
-                .add_plugins(bevy::diagnostic::SystemInformationDiagnosticsPlugin)
-                .add_plugins(PerfUiPlugin);
-        }
-        self
-    }
-}
 fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands
         .ui_builder(UiRoot)
@@ -141,9 +135,6 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     #[cfg(feature = "diagnostics")]
     commands.spawn(PerfUiCompleteBundle::default());
 }
-#[derive(Event)]
-pub struct ExportButtonClicked;
-
 fn button_system(
     mut interaction_query: Query<
         (&Interaction, &mut BackgroundColor),

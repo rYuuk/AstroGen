@@ -143,9 +143,9 @@ impl SphereMesh {
                     (top_vertex, bottom_vertex, top_vertex - 1)
                 };
 
-                indices.push(vertex_map[v0] as u32);
-                indices.push(vertex_map[if reverse { v2 } else { v1 }] as u32);
-                indices.push(vertex_map[if reverse { v1 } else { v2 }] as u32);
+                indices.push(vertex_map[v0]);
+                indices.push(vertex_map[if reverse { v2 } else { v1 }]);
+                indices.push(vertex_map[if reverse { v1 } else { v2 }]);
             }
         }
     }

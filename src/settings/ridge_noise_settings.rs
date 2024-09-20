@@ -5,18 +5,18 @@ use bevy::reflect::Reflect;
 
 #[derive(Resource, Default, Debug, Reflect, Clone)]
 pub struct RidgeNoiseSettings {
-    num_layers: f32,
-    lacunarity: f32,
-    persistence: f32,
-    scale: f32,
-    power: f32,
-    elevation: f32,
-    gain: f32,
-    vertical_shift: f32,
-    peak_smoothing: f32,
-    offset_x: f32,
-    offset_y: f32,
-    offset_z: f32,
+    pub num_layers: f32,
+    pub lacunarity: f32,
+    pub persistence: f32,
+    pub scale: f32,
+    pub power: f32,
+    pub elevation: f32,
+    pub gain: f32,
+    pub vertical_shift: f32,
+    pub peak_smoothing: f32,
+    pub offset_x: f32,
+    pub offset_y: f32,
+    pub offset_z: f32,
 }
 
 impl RidgeNoiseSettings {
