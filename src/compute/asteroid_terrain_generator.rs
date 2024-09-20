@@ -1,68 +1,46 @@
 use bevy::math::Vec3;
-use bevy::prelude::{App, Plugin, Resource, Update, World};
+use bevy::prelude::{App, Commands, Event, Plugin, ResMut, Resource, Update, World};
 use bevy_easy_compute::prelude::{
     AppComputeWorker, AppComputeWorkerBuilder, AppComputeWorkerPlugin, ComputeWorker,
 };
 
 use crate::compute::asteroid_height_compute_shader::{AsteroidHeightComputeShader, NormalAccumulator, NormalComputeShader, NormalizeNormalComputeShader};
-use crate::compute::event_handler;
-use crate::compute::event_handler::MeshDataAfterCompute;
 use crate::settings::crater_settings::{Crater, MAX_CRATER};
 use crate::sphere_mesh::SphereMesh;
 
 pub struct AsteroidGeneratorPlugin;
+#[derive(Resource)]
+pub struct AsteroidComputeWorker;
+#[derive(Event)]
+pub struct MeshDataAfterCompute(pub Vec<Vec3>, pub Vec<Vec3>);
 
 impl Plugin for AsteroidGeneratorPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins(AppComputeWorkerPlugin::<AsteroidComputeWorker>::default())
             .add_event::<MeshDataAfterCompute>()
-            .add_systems(
-                Update,
-                (
-                    event_handler::on_crater_settings_changed,
-                    event_handler::on_ridge_settings_changed,
-                    event_handler::on_simple_noise_settings_changed,
-                    event_handler::receive_data_after_compute,
-                ),
-            );
+            .add_systems(Update,receive_data_after_compute);
     }
 }
-
-#[derive(Resource)]
-pub struct AsteroidComputeWorker;
 
 impl ComputeWorker for AsteroidComputeWorker {
     fn build(world: &mut World) -> AppComputeWorker<Self> {
-        AsteroidComputeWorkerBuilder::new(world).build()
-    }
-}
+        const SPHERE_RESOLUTION: usize = 400;
+        const WORKGROUP_SIZE: u32 = 64; // This should match @workgroup_size in the shader
+        const NUM_NOISE_PARAMS: usize = 3;
 
-struct AsteroidComputeWorkerBuilder<'a> {
-    world: &'a mut World,
-    sphere_mesh: SphereMesh,
-}
-
-impl<'a> AsteroidComputeWorkerBuilder<'a> {
-    fn new(world: &'a mut World) -> Self {
-        let sphere_mesh = SphereMesh::new(400);
-        Self { world, sphere_mesh }
-    }
-
-    fn build(self) -> AppComputeWorker<AsteroidComputeWorker> {
-        let vertex_count = self.sphere_mesh.vertices.len();
-        let noise_params: Vec<[f32; 4]> = vec![[0.0; 4]; 3];
-        let indices_len = self.sphere_mesh.indices.len();
+        let sphere_mesh = SphereMesh::new(SPHERE_RESOLUTION);
+        let vertex_count = sphere_mesh.vertices.len();
+        let noise_params: Vec<[f32; 4]> = vec![[0.0; 4]; NUM_NOISE_PARAMS];
+        let indices_len = sphere_mesh.indices.len();
         let num_triangles = indices_len / 3;
 
-        let workgroup_size = 64; // This should match @workgroup_size in the shader
-        let num_workgroups = (vertex_count + workgroup_size - 1) / workgroup_size;
+        let num_workgroups = (vertex_count + WORKGROUP_SIZE as usize - 1) / WORKGROUP_SIZE as usize;
+        let num_workgroups_normal = (num_triangles + WORKGROUP_SIZE as usize - 1) / WORKGROUP_SIZE as usize;
 
-        let num_workgroups_normal = (num_triangles + workgroup_size - 1) / workgroup_size;
-
-        let worker = AppComputeWorkerBuilder::new(self.world)
-            .add_storage("vertices", &self.sphere_mesh.vertices)
+        let worker = AppComputeWorkerBuilder::new(world)
+            .add_storage("vertices", &sphere_mesh.vertices)
             .add_staging("normals", &vec![Vec3::ZERO; vertex_count])
-            .add_storage("indices", &self.sphere_mesh.indices)
+            .add_storage("indices", &sphere_mesh.indices)
             .add_uniform("num_vertices", &(vertex_count as u32))
             .add_staging("num_triangles", &(num_triangles as u32))
             .add_staging("new_vertices", &vec![Vec3::ZERO; vertex_count])
@@ -91,6 +69,7 @@ impl<'a> AsteroidComputeWorkerBuilder<'a> {
                     "rim_steepness",
                     "rim_width",
                     "craters",
+                    "normal_accumulators",
                 ],
             )
             .add_pass::<NormalComputeShader>(
@@ -113,7 +92,32 @@ impl<'a> AsteroidComputeWorkerBuilder<'a> {
             .one_shot()
             .build();
 
-        self.world.insert_resource(self.sphere_mesh);
+        world.insert_resource(sphere_mesh);
         worker
     }
+}
+
+pub fn receive_data_after_compute(
+    compute_worker: ResMut<AppComputeWorker<AsteroidComputeWorker>>,
+    mut commands: Commands
+) {
+    if compute_worker.ready() {
+
+        let raw_vertices: Vec<[f32; 4]> = compute_worker.read_vec("new_vertices");
+        let vertices:Vec<Vec3> = convert_array4_to_vec3(raw_vertices);
+
+        let raw_normals: Vec<[f32; 4]> = compute_worker.read_vec("normals");
+        let normals: Vec<Vec3> = convert_array4_to_vec3(raw_normals);
+
+        commands.trigger(MeshDataAfterCompute(
+            vertices,
+            normals
+        ));
+    }
+}
+
+fn convert_array4_to_vec3(raw: Vec<[f32; 4]>) -> Vec<Vec3> {
+    raw.into_iter()
+        .map(|[x, y, z,_]| Vec3::new(x, y, z))
+        .collect()
 }

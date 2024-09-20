@@ -50,7 +50,9 @@ fn show_ui(mut contexts: EguiContexts,
                             .color(egui::Color32::WHITE))
                         .fill(egui::Color32::from_rgb(99, 181, 74)); // Light green color
 
-                    if ui.add(export_button).clicked() {}
+                    if ui.add(export_button).clicked() {
+                        export_clicked.send(ExportButtonClicked);
+                    }
                 });
             });
             let mut crater_settings_changed = false;

@@ -7,7 +7,7 @@ use bevy::prelude::*;
 use bevy::render::mesh::{Indices, PrimitiveTopology};
 use bevy::render::render_asset::RenderAssetUsages;
 use bevy::render::render_resource::{AsBindGroup, ShaderRef};
-use crate::compute::event_handler::MeshDataAfterCompute;
+use crate::compute::asteroid_terrain_generator::MeshDataAfterCompute;
 use crate::light::LightDirection;
 use crate::sphere_mesh::SphereMesh;
 
