@@ -3,7 +3,6 @@ use gltf_json as json;
 use std::{fs, mem};
 
 use crate::asteroid_mesh::Asteroid;
-use crate::ExportButtonClicked;
 use bevy::app::{App, Plugin, Update};
 use bevy::asset::{Assets, Handle};
 use bevy::prelude::{EventReader, Mesh, Query, Res, With};
@@ -12,6 +11,7 @@ use json::validation::Checked::Valid;
 use json::validation::USize64;
 use std::borrow::Cow;
 use std::io::Write;
+use crate::ui_asteroid_settings::ExportButtonClicked;
 
 pub struct GlTFExporter;
 

@@ -7,16 +7,20 @@ use bevy_easy_compute::prelude::AppComputeWorker;
 use bevy_egui::{egui, EguiContexts};
 use bevy_egui::egui::{FontId, RichText};
 
-use crate::{ExportButtonClicked, RngSeed};
+use crate::RngSeed;
 use crate::compute::AsteroidComputeWorker;
 use crate::data::asteroid_settings::AsteroidSettings;
 use crate::utils::PRNG;
 
 pub struct UIAsteroidSettings;
+#[derive(Event)]
+pub struct ExportButtonClicked;
 
 impl Plugin for UIAsteroidSettings {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, show_ui);
+        app
+            .add_event::<ExportButtonClicked>()
+            .add_systems(Update, show_ui);
     }
 }
 

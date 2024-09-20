@@ -1,6 +1,5 @@
 use bevy::{diagnostic::FrameTimeDiagnosticsPlugin, prelude::*};
 use bevy::DefaultPlugins;
-use bevy::prelude::*;
 use bevy::utils::default;
 use bevy::winit::WinitSettings;
 use bevy_easy_compute::prelude::AppComputePlugin;
@@ -28,12 +27,6 @@ pub mod compute;
 #[derive(Resource)]
 struct RngSeed(u64);
 
-#[derive(Component)]
-struct ExportButton;
-
-#[derive(Event)]
-pub struct ExportButtonClicked;
-
 fn main() {
     App::new()
         .insert_resource(WinitSettings::desktop_app())
@@ -58,7 +51,6 @@ fn main() {
                       MainCameraPlugin,
                       LightPlugin))
         .insert_resource(RngSeed(2))
-        .add_event::<ExportButtonClicked>()
         .insert_resource(AsteroidSettings::default())
         .run();
 }

@@ -1,14 +1,13 @@
-﻿use bevy::asset::{Asset, Assets, Handle};
+﻿use bevy::asset::Assets;
 use bevy::color::Color;
 use bevy::input::mouse::MouseMotion;
 use bevy::math::{Quat, Vec3};
-use bevy::pbr::{Material, MaterialMeshBundle, MaterialPlugin, StandardMaterial};
+use bevy::pbr::{MaterialMeshBundle, StandardMaterial};
 use bevy::prelude::*;
 use bevy::render::mesh::{Indices, PrimitiveTopology};
 use bevy::render::render_asset::RenderAssetUsages;
-use bevy::render::render_resource::{AsBindGroup, ShaderRef};
+
 use crate::data::compute_data::MeshDataAfterCompute;
-use crate::light::LightDirection;
 use crate::sphere_mesh::SphereMesh;
 
 pub struct AsteroidMeshPlugin;
@@ -16,7 +15,6 @@ pub struct AsteroidMeshPlugin;
 impl Plugin for AsteroidMeshPlugin {
     fn build(&self, app: &mut App) {
         app
-            .add_plugins(MaterialPlugin::<TriplanarMaterial>::default())
             .observe(generate_mesh_from_new_vertices)
             .add_systems(Update, rotate_asteroid_mouse);
     }
@@ -24,28 +22,6 @@ impl Plugin for AsteroidMeshPlugin {
 
 #[derive(Component)]
 pub struct Asteroid;
-
-#[derive(Asset, TypePath, AsBindGroup, Debug, Clone)]
-struct TriplanarMaterial {
-    #[uniform(0)]
-    pub scale: f32,
-    #[uniform(1)]
-    pub blend_sharpness: f32,
-    #[texture(2)]
-    #[sampler(3)]
-    pub main_texture: Option<Handle<Image>>,
-    #[texture(4)]
-    #[sampler(5)]
-    pub normal_map: Option<Handle<Image>>,
-    #[uniform(6)]
-    pub light_direction: Vec3,
-}
-
-impl Material for TriplanarMaterial {
-    fn fragment_shader() -> ShaderRef {
-        "shaders/triplanar_fragment.wgsl".into()
-    }
-}
 
 pub fn render_generated_asteroid(
     mut commands: Commands,
@@ -80,7 +56,6 @@ fn generate_mesh_from_new_vertices(
     meshes: ResMut<Assets<Mesh>>,
     materials: ResMut<Assets<StandardMaterial>>,
     sphere_mesh: ResMut<SphereMesh>,
-    light_direction: Res<LightDirection>,
 ) {
     let ev = trigger.event();
     let new_vertices = ev.0.clone();
