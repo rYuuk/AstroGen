@@ -1,20 +1,19 @@
 use bevy::math::Vec3;
-use bevy::prelude::{App, Commands, Event, Plugin, ResMut, Resource, Update, World};
+use bevy::prelude::{App, Commands, Plugin, ResMut, Resource, Update, World};
 use bevy_easy_compute::prelude::{
     AppComputeWorker, AppComputeWorkerBuilder, AppComputeWorkerPlugin, ComputeWorker,
 };
 
-use crate::compute::asteroid_height_compute_shader::{AsteroidHeightComputeShader, NormalAccumulator, NormalComputeShader, NormalizeNormalComputeShader};
-use crate::settings::crater_settings::{Crater, MAX_CRATER};
+use crate::data::compute_data::{AsteroidHeightComputeShader, MeshDataAfterCompute, NormalAccumulator, NormalComputeShader, NormalizeNormalComputeShader};
+use crate::data::crater_settings::{Crater, MAX_CRATER};
 use crate::sphere_mesh::SphereMesh;
 
-pub struct AsteroidGeneratorPlugin;
+pub struct ComputePlugin;
 #[derive(Resource)]
 pub struct AsteroidComputeWorker;
-#[derive(Event)]
-pub struct MeshDataAfterCompute(pub Vec<Vec3>, pub Vec<Vec3>);
 
-impl Plugin for AsteroidGeneratorPlugin {
+
+impl Plugin for ComputePlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins(AppComputeWorkerPlugin::<AsteroidComputeWorker>::default())
             .add_event::<MeshDataAfterCompute>()
@@ -42,7 +41,7 @@ impl ComputeWorker for AsteroidComputeWorker {
             .add_staging("normals", &vec![Vec3::ZERO; vertex_count])
             .add_storage("indices", &sphere_mesh.indices)
             .add_uniform("num_vertices", &(vertex_count as u32))
-            .add_staging("num_triangles", &(num_triangles as u32))
+            .add_uniform("num_triangles", &(num_triangles as u32))
             .add_staging("new_vertices", &vec![Vec3::ZERO; vertex_count])
             .add_storage("noise_params_shape", &noise_params)
             .add_storage("noise_params_ridge", &noise_params)
@@ -51,7 +50,6 @@ impl ComputeWorker for AsteroidComputeWorker {
             .add_uniform("rim_steepness", &0.0)
             .add_uniform("rim_width", &0.0)
             .add_storage("craters", &[Crater::default(); MAX_CRATER])
-
             .add_staging(
                 "normal_accumulators",
                 &vec![NormalAccumulator::default(); vertex_count],
@@ -65,11 +63,11 @@ impl ComputeWorker for AsteroidComputeWorker {
                     "noise_params_shape",
                     "noise_params_ridge",
                     "noise_params_ridge2",
+                    "normal_accumulators",
                     "num_craters",
                     "rim_steepness",
                     "rim_width",
                     "craters",
-                    "normal_accumulators",
                 ],
             )
             .add_pass::<NormalComputeShader>(

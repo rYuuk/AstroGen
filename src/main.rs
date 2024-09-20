@@ -7,24 +7,23 @@ use bevy_easy_compute::prelude::AppComputePlugin;
 use bevy_egui::EguiPlugin;
 use bevy_embedded_assets::{EmbeddedAssetPlugin, PluginMode};
 
-use compute::asteroid_terrain_generator::AsteroidGeneratorPlugin;
-
 use crate::asteroid_mesh::AsteroidMeshPlugin;
+use crate::compute::ComputePlugin;
 use crate::gltf_exporter::GlTFExporter;
 use crate::light::LightPlugin;
 use crate::main_camera::MainCameraPlugin;
-use crate::settings::asteroid_settings::AsteroidSettings;
+use crate::data::asteroid_settings::AsteroidSettings;
 use crate::ui_asteroid_settings::UIAsteroidSettings;
 
 mod asteroid_mesh;
-mod compute;
 mod gltf_exporter;
 mod light;
 mod main_camera;
-mod settings;
+mod data;
 mod sphere_mesh;
 mod utils;
 mod ui_asteroid_settings;
+pub mod compute;
 
 #[derive(Resource)]
 struct RngSeed(u64);
@@ -52,7 +51,7 @@ fn main() {
         .add_plugins((EguiPlugin,
                       FrameTimeDiagnosticsPlugin,
                       AppComputePlugin,
-                      AsteroidGeneratorPlugin,
+                      ComputePlugin,
                       AsteroidMeshPlugin,
                       UIAsteroidSettings,
                       GlTFExporter,

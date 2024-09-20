@@ -8,8 +8,8 @@ use bevy_egui::{egui, EguiContexts};
 use bevy_egui::egui::{FontId, RichText};
 
 use crate::{ExportButtonClicked, RngSeed};
-use crate::compute::asteroid_terrain_generator::AsteroidComputeWorker;
-use crate::settings::asteroid_settings::AsteroidSettings;
+use crate::compute::AsteroidComputeWorker;
+use crate::data::asteroid_settings::AsteroidSettings;
 use crate::utils::PRNG;
 
 pub struct UIAsteroidSettings;
@@ -99,7 +99,6 @@ fn show_ui(mut contexts: EguiContexts,
             };
 
             let spacing = 20f32;
-
             let crater_settings = &mut settings.crater_settings;
 
             egui::CollapsingHeader::new(RichText::new("Crater Settings").font(FontId::proportional(20.0)))
@@ -115,7 +114,6 @@ fn show_ui(mut contexts: EguiContexts,
                     slider(ui, "Size distribution", &mut crater_settings.size_distribution, 0.01f64, 0.0..=1., &mut crater_settings_changed);
                 });
             ui.add_space(spacing);
-            crater_settings.crater_size_min = crater_settings.crater_size_min.min(crater_settings.crater_size_max);
 
             if crater_settings_changed
             {

@@ -1,7 +1,7 @@
 use bevy::prelude::Resource;
-use crate::settings::crater_settings::CraterSettings;
-use crate::settings::ridge_noise_settings::RidgeNoiseSettings;
-use crate::settings::simple_noise_settings::SimpleNoiseSettings;
+use crate::data::crater_settings::CraterSettings;
+use crate::data::ridge_noise_settings::RidgeNoiseSettings;
+use crate::data::simple_noise_settings::SimpleNoiseSettings;
 
 #[derive(Resource, Default)]
 pub struct AsteroidSettings
