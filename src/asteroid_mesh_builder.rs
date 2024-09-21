@@ -6,6 +6,8 @@ use bevy::pbr::{MaterialMeshBundle, StandardMaterial};
 use bevy::prelude::*;
 use bevy::render::mesh::{Indices, PrimitiveTopology};
 use bevy::render::render_asset::RenderAssetUsages;
+use bevy_egui::EguiContexts;
+
 use crate::compute_events::MeshDataAfterCompute;
 use crate::sphere_mesh::SphereMesh;
 
@@ -88,8 +90,15 @@ fn rotate_asteroid_mouse(
     mut query: Query<&mut Transform, With<Asteroid>>,
     mut mouse_motion_events: EventReader<MouseMotion>,
     mouse_button_input: Res<ButtonInput<MouseButton>>,
+    mut contexts: EguiContexts,
 )
 {
+    if let Some(ctx) = contexts.try_ctx_mut() {
+        if ctx.is_pointer_over_area() {
+            return;
+        }
+    }
+
     if mouse_button_input.pressed(MouseButton::Left) {
         let mut rotation_x = 0.0;
         let mut rotation_y = 0.0;
