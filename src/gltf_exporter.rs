@@ -1,23 +1,23 @@
-use gltf_json as json;
-
 use std::{fs, mem};
-
-use crate::asteroid_mesh::Asteroid;
-use bevy::app::{App, Plugin, Update};
-use bevy::asset::{Assets, Handle};
-use bevy::prelude::{EventReader, Mesh, Query, Res, With};
-use bevy::render::mesh::{Indices, VertexAttributeValues};
-use json::validation::Checked::Valid;
-use json::validation::USize64;
 use std::borrow::Cow;
 use std::io::Write;
+
+use bevy::app::{App, Plugin};
+use bevy::asset::{Assets, Handle};
+use bevy::prelude::{Mesh, Query, Res, Trigger, With};
+use bevy::render::mesh::{Indices, VertexAttributeValues};
+use gltf_json as json;
+use json::validation::Checked::Valid;
+use json::validation::USize64;
+
+use crate::asteroid_mesh::Asteroid;
 use crate::ui_asteroid_settings::ExportButtonClicked;
 
 pub struct GlTFExporter;
 
 impl Plugin for GlTFExporter {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, export_gltf);
+        app.observe(export_gltf);
     }
 }
 
@@ -30,51 +30,49 @@ enum Output {
 }
 
 fn export_gltf(
-    asteroid_query: Query<&Handle<Mesh>, With<Asteroid>>,
-    mut on_export_clicked: EventReader<ExportButtonClicked>,
+    _: Trigger<ExportButtonClicked>,
+    mut asteroid_query: Query<&Handle<Mesh>, With<Asteroid>>,
     meshes: Res<Assets<Mesh>>,
 ) {
-    for _ in on_export_clicked.read() {
-        let mesh_handle = asteroid_query.get_single().unwrap();
+    let mesh_handle = asteroid_query.get_single_mut().unwrap();
 
-        if let Some(mesh) = meshes.get(&*mesh_handle) {
-            let mut mesh_vertices: &Vec<[f32; 3]> = &vec![];
-            let mut mesh_normals: &Vec<[f32; 3]> = &vec![];
-            let mut mesh_indices: &Vec<u32> = &vec![];
+    if let Some(mesh) = meshes.get(mesh_handle) {
+        let mut mesh_vertices: &Vec<[f32; 3]> = &vec![];
+        let mut mesh_normals: &Vec<[f32; 3]> = &vec![];
+        let mut mesh_indices: &Vec<u32> = &vec![];
 
-            if let Some(VertexAttributeValues::Float32x3(vertices)) =
-                mesh.attribute(Mesh::ATTRIBUTE_POSITION)
-            {
-                mesh_vertices = vertices;
-            } else {
-                println!("Vertices not found or not in Float32x3 format.");
-            }
-
-            if let Some(indices) = mesh.indices() {
-                match indices {
-                    Indices::U16(_) => {
-                        println!("WARNING !! Indices are in u16");
-                    }
-                    Indices::U32(indices) => {
-                        mesh_indices = indices;
-                    }
-                }
-            } else {
-                println!("Mesh has no indices.");
-            }
-
-            if let Some(VertexAttributeValues::Float32x3(normals)) =
-                mesh.attribute(Mesh::ATTRIBUTE_NORMAL)
-            {
-                mesh_normals = normals;
-            } else {
-                println!("Vertex normals not found or not in Float32x3 format.");
-            }
-
-            export(mesh_vertices, mesh_indices, mesh_normals);
+        if let Some(VertexAttributeValues::Float32x3(vertices)) =
+            mesh.attribute(Mesh::ATTRIBUTE_POSITION)
+        {
+            mesh_vertices = vertices;
         } else {
-            println!("Mesh not found.");
+            println!("Vertices not found or not in Float32x3 format.");
         }
+
+        if let Some(indices) = mesh.indices() {
+            match indices {
+                Indices::U16(_) => {
+                    println!("WARNING !! Indices are in u16");
+                }
+                Indices::U32(indices) => {
+                    mesh_indices = indices;
+                }
+            }
+        } else {
+            println!("Mesh has no indices.");
+        }
+
+        if let Some(VertexAttributeValues::Float32x3(normals)) =
+            mesh.attribute(Mesh::ATTRIBUTE_NORMAL)
+        {
+            mesh_normals = normals;
+        } else {
+            println!("Vertex normals not found or not in Float32x3 format.");
+        }
+
+        export(mesh_vertices, mesh_indices, mesh_normals);
+    } else {
+        println!("Mesh not found.");
     }
 }
 

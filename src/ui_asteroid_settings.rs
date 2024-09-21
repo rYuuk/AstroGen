@@ -46,8 +46,8 @@ fn show_ui(mut contexts: EguiContexts,
            diagnostic: Res<DiagnosticsStore>,
            mut settings: ResMut<AsteroidSettings>,
            mut commands: Commands,
-           mut export_clicked: EventWriter<ExportButtonClicked>,
-           mut value_changed: ResMut<ValueChanged>
+           mut value_changed: ResMut<ValueChanged>,
+           mut status_changed: Local<String>
 ) {
     if let Some(ctx) = contexts.try_ctx_mut() {
         egui::Window::new("Settings")
@@ -74,8 +74,10 @@ fn show_ui(mut contexts: EguiContexts,
                             .fill(egui::Color32::from_rgb(99, 181, 74));
 
                         if ui.add(export_button).clicked() {
-                            export_clicked.send(ExportButtonClicked);
+                            commands.trigger(ExportButtonClicked);
+                            *status_changed = "Saved to asteroid.glb".to_string();
                         }
+                        ui.label(&*status_changed);
                     });
                 });
 
