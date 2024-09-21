@@ -6,7 +6,7 @@ use bevy_embedded_assets::{EmbeddedAssetPlugin, PluginMode};
 
 use crate::asteroid_mesh::AsteroidMeshPlugin;
 use crate::compute::ComputePlugin;
-use crate::data::asteroid_settings::AsteroidSettings;
+use crate::settings::asteroid_settings::AsteroidSettings;
 use crate::gltf_exporter::GlTFExporter;
 use crate::light::LightPlugin;
 use crate::main_camera::MainCameraPlugin;
@@ -16,11 +16,13 @@ mod asteroid_mesh;
 mod gltf_exporter;
 mod light;
 mod main_camera;
-mod data;
+mod settings;
 mod sphere_mesh;
 mod utils;
 mod ui_asteroid_settings;
 pub mod compute;
+pub mod compute_shaders;
+mod compute_events;
 
 #[derive(Resource)]
 struct RngSeed(u64);

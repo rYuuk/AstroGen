@@ -3,18 +3,16 @@ use std::ops::RangeInclusive;
 use bevy::app::{App, Plugin};
 use bevy::diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin};
 use bevy::prelude::*;
-use bevy_easy_compute::prelude::AppComputeWorker;
 use bevy_egui::{egui, EguiContexts};
 use bevy_egui::egui::{FontId, RichText};
 
-use crate::compute::AsteroidComputeWorker;
-use crate::data::asteroid_settings::AsteroidSettings;
-use crate::RngSeed;
-use crate::utils::PRNG;
+use crate::compute_events::{CraterSettingsChanged, RidgeNoiseSettingsChanged, SimpleNoiseSettingsChanged};
+use crate::settings::asteroid_settings::AsteroidSettings;
 
 pub struct UIAsteroidSettings;
 #[derive(Event)]
 pub struct ExportButtonClicked;
+
 
 impl Plugin for UIAsteroidSettings {
     fn build(&self, app: &mut App) {
@@ -27,8 +25,7 @@ impl Plugin for UIAsteroidSettings {
 fn show_ui(mut contexts: EguiContexts,
            diagnostic: Res<DiagnosticsStore>,
            mut settings: ResMut<AsteroidSettings>,
-           mut compute_worker: ResMut<AppComputeWorker<AsteroidComputeWorker>>,
-           seed: ResMut<RngSeed>,
+           mut commands: Commands,
            mut export_clicked: EventWriter<ExportButtonClicked>,
 ) {
     if let Some(ctx) = contexts.try_ctx_mut() {
@@ -53,7 +50,7 @@ fn show_ui(mut contexts: EguiContexts,
                                 .strong()
                                 .font(FontId::proportional(20.0))
                                 .color(egui::Color32::WHITE))
-                            .fill(egui::Color32::from_rgb(99, 181, 74)); // Light green color
+                            .fill(egui::Color32::from_rgb(99, 181, 74));
 
                         if ui.add(export_button).clicked() {
                             export_clicked.send(ExportButtonClicked);
@@ -122,13 +119,9 @@ fn show_ui(mut contexts: EguiContexts,
 
                 if crater_settings_changed
                 {
-                    let craters = crater_settings.get_craters(seed.0);
-
-                    compute_worker.write_slice("num_craters", &[craters.len() as u32]);
-                    compute_worker.write_slice("rim_steepness", &[crater_settings.get_rim_steepness()]);
-                    compute_worker.write_slice("rim_width", &[crater_settings.get_rim_width()]);
-                    compute_worker.write_slice("craters", &craters);
-                    compute_worker.execute();
+                    commands.trigger(CraterSettingsChanged(
+                        crater_settings.clone()
+                    ));
                 }
                 crater_settings_changed = false;
 
@@ -149,11 +142,9 @@ fn show_ui(mut contexts: EguiContexts,
                 ui.add_space(spacing);
 
                 if simple_noise_settings_changed {
-                    let prng = PRNG::new(seed.0);
-                    let noise_params = simple_noise_settings.get_noise_params(prng);
-
-                    compute_worker.write_slice("noise_params_shape", &noise_params);
-                    compute_worker.execute();
+                    commands.trigger(SimpleNoiseSettingsChanged(
+                        simple_noise_settings.clone()
+                    ));
                 }
                 simple_noise_settings_changed = false;
 
@@ -167,7 +158,7 @@ fn show_ui(mut contexts: EguiContexts,
                         slider(ui, "Persistence", &mut ridge_noise_settings.persistence, 0.1f64, 0.0..=5., &mut ridge_noise_settings_changed);
                         slider(ui, "Scale", &mut ridge_noise_settings.scale, 0.1f64, 0.0..=5., &mut ridge_noise_settings_changed);
                         slider(ui, "Power", &mut ridge_noise_settings.power, 0.1f64, 0.0..=5., &mut ridge_noise_settings_changed);
-                        slider(ui, "Elevation", &mut ridge_noise_settings.elevation, 0.1f64, 0.0..=5., &mut ridge_noise_settings_changed);
+                        slider(ui, "Elevation", &mut ridge_noise_settings.elevation, 0.1f64, -5.0..=5., &mut ridge_noise_settings_changed);
                         slider(ui, "Gain", &mut ridge_noise_settings.gain, 0.1f64, 0.0..=10., &mut ridge_noise_settings_changed);
                         slider(ui, "Vertical Shift", &mut ridge_noise_settings.vertical_shift, 0.1f64, 0.0..=5., &mut ridge_noise_settings_changed);
                         slider(ui, "Peak Smoothing", &mut ridge_noise_settings.peak_smoothing, 0.1f64, 0.0..=5., &mut ridge_noise_settings_changed);
@@ -178,11 +169,10 @@ fn show_ui(mut contexts: EguiContexts,
                 ui.add_space(20f32);
 
                 if ridge_noise_settings_changed {
-                    let prng = PRNG::new(seed.0);
-                    let noise_params = ridge_noise_settings.get_noise_params(prng);
-
-                    compute_worker.write_slice("noise_params_ridge", &noise_params);
-                    compute_worker.execute();
+                    commands.trigger(RidgeNoiseSettingsChanged(
+                        ridge_noise_settings.clone(),
+                         "".to_string(),
+                    ));
                 }
 
                 ridge_noise_settings_changed = false;
@@ -196,7 +186,7 @@ fn show_ui(mut contexts: EguiContexts,
                         slider(ui, "Persistence", &mut ridge_noise_settings2.persistence, 0.1f64, 0.0..=5., &mut ridge_noise_settings2_changed);
                         slider(ui, "Scale", &mut ridge_noise_settings2.scale, 0.1f64, 0.0..=5., &mut ridge_noise_settings2_changed);
                         slider(ui, "Power", &mut ridge_noise_settings2.power, 0.1f64, 0.0..=5., &mut ridge_noise_settings2_changed);
-                        slider(ui, "Elevation", &mut ridge_noise_settings2.elevation, 0.1f64, 0.0..=5., &mut ridge_noise_settings2_changed);
+                        slider(ui, "Elevation", &mut ridge_noise_settings2.elevation, 0.1f64, -5.0..=5., &mut ridge_noise_settings2_changed);
                         slider(ui, "Gain", &mut ridge_noise_settings2.gain, 0.1f64, 0.0..=10., &mut ridge_noise_settings2_changed);
                         slider(ui, "Vertical Shift", &mut ridge_noise_settings2.vertical_shift, 0.1f64, 0.0..=5., &mut ridge_noise_settings2_changed);
                         slider(ui, "Peak Smoothing", &mut ridge_noise_settings2.peak_smoothing, 0.1f64, 0.0..=5., &mut ridge_noise_settings2_changed);
@@ -206,11 +196,10 @@ fn show_ui(mut contexts: EguiContexts,
                     });
 
                 if ridge_noise_settings2_changed {
-                    let prng = PRNG::new(seed.0);
-                    let noise_params = ridge_noise_settings2.get_noise_params(prng);
-
-                    compute_worker.write_slice("noise_params_ridge2", &noise_params);
-                    compute_worker.execute();
+                    commands.trigger(RidgeNoiseSettingsChanged(
+                        ridge_noise_settings2.clone(),
+                        "2".to_string(),
+                    ));
                 }
 
                 ridge_noise_settings2_changed = false;

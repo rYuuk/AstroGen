@@ -1,10 +1,7 @@
-﻿use bevy::math::Vec3;
-use bevy::prelude::{Event, TypePath};
-use bevy::render::render_resource::{ShaderRef, ShaderType};
+﻿use bevy::prelude::TypePath;
+use bevy::render::render_resource::ShaderRef;
 use bevy_easy_compute::prelude::ComputeShader;
-use bytemuck::{Pod, Zeroable};
-#[derive(Event)]
-pub struct MeshDataAfterCompute(pub Vec<Vec3>, pub Vec<Vec3>);
+
 #[derive(TypePath)]
 pub struct AsteroidHeightComputeShader;
 
@@ -32,11 +29,5 @@ impl ComputeShader for NormalizeNormalComputeShader {
     }
 }
 
-#[repr(C)]
-#[derive(ShaderType, Clone, Default, Copy, Pod, Zeroable)]
-pub struct NormalAccumulator {
-    pub x: i32,
-    pub y: i32,
-    pub z: i32,
-}
+
 

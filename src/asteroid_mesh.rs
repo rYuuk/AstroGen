@@ -6,8 +6,7 @@ use bevy::pbr::{MaterialMeshBundle, StandardMaterial};
 use bevy::prelude::*;
 use bevy::render::mesh::{Indices, PrimitiveTopology};
 use bevy::render::render_asset::RenderAssetUsages;
-
-use crate::data::compute_data::MeshDataAfterCompute;
+use crate::compute_events::MeshDataAfterCompute;
 use crate::sphere_mesh::SphereMesh;
 
 pub struct AsteroidMeshPlugin;

@@ -1,23 +1,40 @@
 use bevy::math::Vec3;
-use bevy::prelude::{App, Commands, Plugin, ResMut, Resource, Update, World};
+use bevy::prelude::{App, Commands, Plugin, ResMut, Resource, Trigger, Update, World};
+use bevy::render::render_resource::ShaderType;
 use bevy_easy_compute::prelude::{
     AppComputeWorker, AppComputeWorkerBuilder, AppComputeWorkerPlugin, ComputeWorker,
 };
-
-use crate::data::compute_data::{AsteroidHeightComputeShader, MeshDataAfterCompute, NormalAccumulator, NormalComputeShader, NormalizeNormalComputeShader};
-use crate::data::crater_settings::{Crater, MAX_CRATER};
+use bytemuck::{Pod, Zeroable};
+use crate::compute_shaders::{AsteroidHeightComputeShader, NormalComputeShader, NormalizeNormalComputeShader};
+use crate::compute_events::{CraterSettingsChanged, MeshDataAfterCompute, RidgeNoiseSettingsChanged, SimpleNoiseSettingsChanged};
+use crate::RngSeed;
+use crate::settings::crater_settings::{Crater, MAX_CRATER};
 use crate::sphere_mesh::SphereMesh;
+use crate::utils::PRNG;
 
 pub struct ComputePlugin;
 #[derive(Resource)]
 pub struct AsteroidComputeWorker;
 
+#[repr(C)]
+#[derive(ShaderType, Clone, Default, Copy, Pod, Zeroable)]
+pub struct NormalAccumulator {
+    pub x: i32,
+    pub y: i32,
+    pub z: i32,
+}
 
 impl Plugin for ComputePlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins(AppComputeWorkerPlugin::<AsteroidComputeWorker>::default())
             .add_event::<MeshDataAfterCompute>()
-            .add_systems(Update,receive_data_after_compute);
+            .add_event::<CraterSettingsChanged>()
+            .add_event::<SimpleNoiseSettingsChanged>()
+            .add_event::<RidgeNoiseSettingsChanged>()
+            .observe(send_crater_settings_data)
+            .observe(send_simple_noise_settings_data)
+            .observe(send_ridge_noise_settings_data)
+            .add_systems(Update, receive_data_after_compute);
     }
 }
 
@@ -95,27 +112,74 @@ impl ComputeWorker for AsteroidComputeWorker {
     }
 }
 
+fn send_crater_settings_data(
+    trigger: Trigger<CraterSettingsChanged>,
+    mut compute_worker: ResMut<AppComputeWorker<AsteroidComputeWorker>>,
+    seed: ResMut<RngSeed>,
+) {
+    let ev = trigger.event();
+    let crater_settings = &ev.0;
+    let craters = crater_settings.get_craters(seed.0);
+
+    compute_worker.write_slice("num_craters", &[craters.len() as u32]);
+    compute_worker.write_slice("rim_steepness", &[crater_settings.get_rim_steepness()]);
+    compute_worker.write_slice("rim_width", &[crater_settings.get_rim_width()]);
+    compute_worker.write_slice("craters", &craters);
+    compute_worker.execute();
+}
+
+fn send_simple_noise_settings_data(
+    trigger: Trigger<SimpleNoiseSettingsChanged>,
+    mut compute_worker: ResMut<AppComputeWorker<AsteroidComputeWorker>>,
+    seed: ResMut<RngSeed>,
+) {
+    let ev = trigger.event();
+    let simple_noise_settings = &ev.0;
+    
+    let prng = PRNG::new(seed.0);
+    let noise_params = simple_noise_settings.get_noise_params(prng);
+
+    compute_worker.write_slice("noise_params_shape", &noise_params);
+    compute_worker.execute();
+}
+
+fn send_ridge_noise_settings_data(
+    trigger: Trigger<RidgeNoiseSettingsChanged>,
+    mut compute_worker: ResMut<AppComputeWorker<AsteroidComputeWorker>>,
+    seed: ResMut<RngSeed>,
+) {
+    let ev = trigger.event();
+    let ridge_noise_settings = &ev.0;
+    let suffix = &ev.1;
+
+    let prng = PRNG::new(seed.0);
+    let noise_params = ridge_noise_settings.get_noise_params(prng);
+
+    compute_worker.write_slice(&format!("noise_params_ridge{}",suffix), &noise_params);
+    compute_worker.execute();
+}
+
+
 pub fn receive_data_after_compute(
     compute_worker: ResMut<AppComputeWorker<AsteroidComputeWorker>>,
-    mut commands: Commands
+    mut commands: Commands,
 ) {
     if compute_worker.ready() {
-
         let raw_vertices: Vec<[f32; 4]> = compute_worker.read_vec("new_vertices");
-        let vertices:Vec<Vec3> = convert_array4_to_vec3(raw_vertices);
+        let vertices: Vec<Vec3> = convert_array4_to_vec3(raw_vertices);
 
         let raw_normals: Vec<[f32; 4]> = compute_worker.read_vec("normals");
         let normals: Vec<Vec3> = convert_array4_to_vec3(raw_normals);
 
         commands.trigger(MeshDataAfterCompute(
             vertices,
-            normals
+            normals,
         ));
     }
 }
 
 fn convert_array4_to_vec3(raw: Vec<[f32; 4]>) -> Vec<Vec3> {
     raw.into_iter()
-        .map(|[x, y, z,_]| Vec3::new(x, y, z))
+        .map(|[x, y, z, _]| Vec3::new(x, y, z))
         .collect()
 }
