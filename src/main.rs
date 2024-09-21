@@ -4,14 +4,14 @@ use bevy_easy_compute::prelude::AppComputePlugin;
 use bevy_egui::EguiPlugin;
 use bevy_embedded_assets::{EmbeddedAssetPlugin, PluginMode};
 
-use crate::asteroid_mesh::AsteroidMeshPlugin;
+use crate::asteroid_mesh_builder::AsteroidMeshBuilderPlugin;
 use crate::compute::ComputePlugin;
 use crate::gltf_exporter::GlTFExporter;
 use crate::light::LightPlugin;
 use crate::main_camera::MainCameraPlugin;
 use crate::ui_asteroid_settings::UIAsteroidSettings;
 
-mod asteroid_mesh;
+mod asteroid_mesh_builder;
 mod gltf_exporter;
 mod light;
 mod main_camera;
@@ -43,7 +43,7 @@ fn main() {
                       FrameTimeDiagnosticsPlugin,
                       AppComputePlugin,
                       ComputePlugin,
-                      AsteroidMeshPlugin,
+                      AsteroidMeshBuilderPlugin,
                       GlTFExporter,
                       MainCameraPlugin,
                       LightPlugin,

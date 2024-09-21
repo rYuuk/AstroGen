@@ -9,9 +9,9 @@ use bevy::render::render_asset::RenderAssetUsages;
 use crate::compute_events::MeshDataAfterCompute;
 use crate::sphere_mesh::SphereMesh;
 
-pub struct AsteroidMeshPlugin;
+pub struct AsteroidMeshBuilderPlugin;
 
-impl Plugin for AsteroidMeshPlugin {
+impl Plugin for AsteroidMeshBuilderPlugin {
     fn build(&self, app: &mut App) {
         app
             .observe(generate_mesh_from_new_vertices)

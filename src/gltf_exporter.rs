@@ -10,7 +10,7 @@ use gltf_json as json;
 use json::validation::Checked::Valid;
 use json::validation::USize64;
 
-use crate::asteroid_mesh::Asteroid;
+use crate::asteroid_mesh_builder::Asteroid;
 use crate::ui_asteroid_settings::ExportButtonClicked;
 
 pub struct GlTFExporter;

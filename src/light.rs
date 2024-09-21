@@ -4,7 +4,7 @@ use bevy::app::App;
 use bevy::color::Color;
 use bevy::math::{Quat, Vec3};
 use bevy::pbr::{
-    CascadeShadowConfigBuilder, DirectionalLight, DirectionalLightBundle, DirectionalLightShadowMap,
+    CascadeShadowConfigBuilder, DirectionalLight, DirectionalLightBundle,
     light_consts,
 };
 use bevy::prelude::{Commands, default, Plugin, Startup, Transform};

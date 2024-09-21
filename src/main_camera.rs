@@ -44,8 +44,8 @@ fn zoom_camera(
 
     for mut transform in camera_query.iter_mut() {
         let mut translation = transform.translation;
-        translation.z -= scroll * 0.5; // Adjust this value to change zoom speed
-        translation.z = translation.z.max(3.0).min(10.0); // Limit zoom range
+        translation.z -= scroll * 0.5;
+        translation.z = translation.z.clamp(3.0, 10.0); 
         transform.translation = translation;
     }
 }
