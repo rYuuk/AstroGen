@@ -5,7 +5,7 @@ use bevy_easy_compute::prelude::{
     AppComputeWorker, AppComputeWorkerBuilder, AppComputeWorkerPlugin, ComputeWorker,
 };
 use bytemuck::{Pod, Zeroable};
-use crate::compute_shaders::{AsteroidHeightComputeShader, NormalComputeShader, NormalizeNormalComputeShader};
+use crate::compute_shaders::{AsteroidShapeComputeShader, NormalComputeShader, NormalizeNormalComputeShader};
 use crate::compute_events::{CraterSettingsChanged, MeshDataAfterCompute, PerturbStrengthChanged, RidgeNoiseSettingsChanged, SimpleNoiseSettingsChanged};
 use crate::RngSeed;
 use crate::settings::asteroid_settings::AsteroidSettings;
@@ -76,7 +76,7 @@ impl ComputeWorker for AsteroidComputeWorker {
                 "normal_accumulators",
                 &vec![NormalAccumulator::default(); vertex_count],
             )
-            .add_pass::<AsteroidHeightComputeShader>(
+            .add_pass::<AsteroidShapeComputeShader>(
                 [num_workgroups as u32, 1, 1],
                 &[
                     "vertices",
