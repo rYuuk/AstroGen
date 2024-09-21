@@ -7,10 +7,10 @@ struct Crater {
     smoothness: f32,
 };
 
-@group(0) @binding(7) var<uniform> num_craters: u32;
-@group(0) @binding(8) var<uniform> rim_steepness: f32;
-@group(0) @binding(9) var<uniform> rim_width: f32;
-@group(0) @binding(10) var<storage, read> craters: array<Crater>;
+@group(0) @binding(8) var<uniform> num_craters: u32;
+@group(0) @binding(9) var<uniform> rim_steepness: f32;
+@group(0) @binding(10) var<uniform> rim_width: f32;
+@group(0) @binding(11) var<storage, read> craters: array<Crater>;
 
 fn calculateCraterDepth(vertexPos: vec3<f32>) -> f32 {
     var craterHeight: f32 = 0.0;

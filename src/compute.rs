@@ -1,12 +1,12 @@
 use bevy::math::Vec3;
-use bevy::prelude::{App, Commands, Plugin, ResMut, Resource, Trigger, Update, World};
+use bevy::prelude::{App, Commands, Plugin, Res, ResMut, Resource, Trigger, Update, World};
 use bevy::render::render_resource::ShaderType;
 use bevy_easy_compute::prelude::{
     AppComputeWorker, AppComputeWorkerBuilder, AppComputeWorkerPlugin, ComputeWorker,
 };
 use bytemuck::{Pod, Zeroable};
 use crate::compute_shaders::{AsteroidHeightComputeShader, NormalComputeShader, NormalizeNormalComputeShader};
-use crate::compute_events::{CraterSettingsChanged, MeshDataAfterCompute, RidgeNoiseSettingsChanged, SimpleNoiseSettingsChanged};
+use crate::compute_events::{CraterSettingsChanged, MeshDataAfterCompute, PerturbStrengthChanged, RidgeNoiseSettingsChanged, SimpleNoiseSettingsChanged};
 use crate::RngSeed;
 use crate::settings::asteroid_settings::AsteroidSettings;
 use crate::settings::crater_settings::{Crater, MAX_CRATER};
@@ -30,9 +30,11 @@ impl Plugin for ComputePlugin {
         app.add_plugins(AppComputeWorkerPlugin::<AsteroidComputeWorker>::default())
             .insert_resource(AsteroidSettings::default())
             .add_event::<MeshDataAfterCompute>()
+            .add_event::<PerturbStrengthChanged>()
             .add_event::<CraterSettingsChanged>()
             .add_event::<SimpleNoiseSettingsChanged>()
             .add_event::<RidgeNoiseSettingsChanged>()
+            .observe(send_perturb_strength_data)
             .observe(send_crater_settings_data)
             .observe(send_simple_noise_settings_data)
             .observe(send_ridge_noise_settings_data)
@@ -65,6 +67,7 @@ impl ComputeWorker for AsteroidComputeWorker {
             .add_storage("noise_params_shape", &noise_params)
             .add_storage("noise_params_ridge", &noise_params)
             .add_storage("noise_params_ridge2", &noise_params)
+            .add_uniform("max_strength", &0.)
             .add_uniform("num_craters", &0)
             .add_uniform("rim_steepness", &0.0)
             .add_uniform("rim_width", &0.0)
@@ -83,6 +86,7 @@ impl ComputeWorker for AsteroidComputeWorker {
                     "noise_params_ridge",
                     "noise_params_ridge2",
                     "normal_accumulators",
+                    "max_strength",
                     "num_craters",
                     "rim_steepness",
                     "rim_width",
@@ -112,6 +116,21 @@ impl ComputeWorker for AsteroidComputeWorker {
         world.insert_resource(sphere_mesh);
         worker
     }
+}
+
+fn send_perturb_strength_data(
+    trigger: Trigger<PerturbStrengthChanged>,
+    mut compute_worker: ResMut<AppComputeWorker<AsteroidComputeWorker>>,
+    sphere_mesh: Res<SphereMesh>
+) {
+    let ev = trigger.event();
+    let perturb_strength = ev.0;
+    
+    let edge_length = (sphere_mesh.vertices[sphere_mesh.indices[0] as usize] - sphere_mesh.vertices[sphere_mesh.indices[1] as usize]).length();
+    let max_perturb_strength = perturb_strength * edge_length / 2.;
+    
+    compute_worker.write_slice("max_strength", &[max_perturb_strength]);
+    compute_worker.execute();
 }
 
 fn send_crater_settings_data(

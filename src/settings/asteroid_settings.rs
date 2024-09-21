@@ -6,6 +6,7 @@ use crate::settings::simple_noise_settings::SimpleNoiseSettings;
 #[derive(Resource)]
 pub struct AsteroidSettings
 {
+    pub peturb_strength: f32,
     pub crater_settings: CraterSettings,
     pub simple_noise_settings: SimpleNoiseSettings,
     pub ridge_noise_settings: RidgeNoiseSettings,
@@ -15,6 +16,7 @@ pub struct AsteroidSettings
 impl Default for AsteroidSettings {
     fn default() -> Self {
         AsteroidSettings {
+            peturb_strength: 0.45,
             crater_settings: CraterSettings {
                 num_craters: 100.,
                 crater_size_min: 0.01,

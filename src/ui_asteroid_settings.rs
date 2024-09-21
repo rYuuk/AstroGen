@@ -6,7 +6,7 @@ use bevy::prelude::*;
 use bevy_egui::{egui, EguiContexts};
 use bevy_egui::egui::{FontId, RichText};
 
-use crate::compute_events::{CraterSettingsChanged, RidgeNoiseSettingsChanged, SimpleNoiseSettingsChanged};
+use crate::compute_events::{CraterSettingsChanged, PerturbStrengthChanged, RidgeNoiseSettingsChanged, SimpleNoiseSettingsChanged};
 use crate::settings::asteroid_settings::AsteroidSettings;
 
 pub struct UIAsteroidSettings;
@@ -16,6 +16,7 @@ pub struct ExportButtonClicked;
 
 #[derive(Resource)]
 struct ValueChanged {
+    pub perturb_strength: bool,
     pub crater_settings: bool,
     pub simple_noise_settings: bool,
     pub ridge_noise_settings: bool,
@@ -25,6 +26,7 @@ struct ValueChanged {
 impl Default for ValueChanged{
     fn default() -> Self {
         ValueChanged{
+            perturb_strength: true,
             crater_settings: true,
             simple_noise_settings: true,
             ridge_noise_settings: true,
@@ -118,6 +120,17 @@ fn show_ui(mut contexts: EguiContexts,
                         drag_value(ui, "Z:", z, changed);
                     });
                 };
+                ui.add_space(10f32);
+                slider(ui, "Perturb Strength", &mut settings.peturb_strength, 0.01f64, 0.0..=1.,&mut value_changed.perturb_strength);
+                ui.add_space(10f32);
+
+                if value_changed.perturb_strength
+                {
+                    commands.trigger(PerturbStrengthChanged(
+                            settings.peturb_strength
+                    ));
+                }
+                value_changed.perturb_strength = false;
 
                 let spacing = 20f32;
                 let crater_settings = &mut settings.crater_settings;

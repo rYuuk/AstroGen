@@ -7,6 +7,10 @@ use crate::settings::simple_noise_settings::SimpleNoiseSettings;
 #[derive(Event)]
 pub struct MeshDataAfterCompute(pub Vec<Vec3>, pub Vec<Vec3>);
 
+
+#[derive(Event)]
+pub struct PerturbStrengthChanged(pub f32);
+
 #[derive(Event)]
 pub struct CraterSettingsChanged(pub CraterSettings);
 
