@@ -6,7 +6,6 @@ use bevy_embedded_assets::{EmbeddedAssetPlugin, PluginMode};
 
 use crate::asteroid_mesh::AsteroidMeshPlugin;
 use crate::compute::ComputePlugin;
-use crate::settings::asteroid_settings::AsteroidSettings;
 use crate::gltf_exporter::GlTFExporter;
 use crate::light::LightPlugin;
 use crate::main_camera::MainCameraPlugin;
@@ -51,6 +50,5 @@ fn main() {
                       UIAsteroidSettings,
         ))
         .insert_resource(RngSeed(2))
-        .insert_resource(AsteroidSettings::default())
         .run();
 }

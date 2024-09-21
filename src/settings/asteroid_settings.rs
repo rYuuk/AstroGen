@@ -16,7 +16,7 @@ impl Default for AsteroidSettings {
     fn default() -> Self {
         AsteroidSettings {
             crater_settings: CraterSettings {
-                num_craters: 42.,
+                num_craters: 100.,
                 crater_size_min: 0.01,
                 crater_size_max: 0.14,
                 rim_steepness: 0.13,
@@ -26,7 +26,7 @@ impl Default for AsteroidSettings {
                 size_distribution: 0.05,
             },
             simple_noise_settings: SimpleNoiseSettings {
-                num_layers: 3.,
+                num_layers: 3.4,
                 lacunarity: 2.,
                 persistence: 0.5,
                 scale: 0.66,
@@ -41,6 +41,7 @@ impl Default for AsteroidSettings {
                 scale: 4.44,
                 elevation: 0.92,
                 power: 0.5,
+                gain: 0.5,
                 ..default()
             },
             ridge_noise_settings2: RidgeNoiseSettings {

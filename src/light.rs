@@ -13,7 +13,7 @@ pub struct LightPlugin;
 
 impl Plugin for LightPlugin {
     fn build(&self, app: &mut App) {
-        app.insert_resource(DirectionalLightShadowMap { size: 4096 })
+        app
             .add_systems(Startup, initialize_camera);
     }
 }

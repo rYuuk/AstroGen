@@ -8,6 +8,7 @@ use bytemuck::{Pod, Zeroable};
 use crate::compute_shaders::{AsteroidHeightComputeShader, NormalComputeShader, NormalizeNormalComputeShader};
 use crate::compute_events::{CraterSettingsChanged, MeshDataAfterCompute, RidgeNoiseSettingsChanged, SimpleNoiseSettingsChanged};
 use crate::RngSeed;
+use crate::settings::asteroid_settings::AsteroidSettings;
 use crate::settings::crater_settings::{Crater, MAX_CRATER};
 use crate::sphere_mesh::SphereMesh;
 use crate::utils::PRNG;
@@ -27,6 +28,7 @@ pub struct NormalAccumulator {
 impl Plugin for ComputePlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins(AppComputeWorkerPlugin::<AsteroidComputeWorker>::default())
+            .insert_resource(AsteroidSettings::default())
             .add_event::<MeshDataAfterCompute>()
             .add_event::<CraterSettingsChanged>()
             .add_event::<SimpleNoiseSettingsChanged>()
