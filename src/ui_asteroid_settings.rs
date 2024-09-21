@@ -3,6 +3,7 @@ use std::ops::RangeInclusive;
 use bevy::app::{App, Plugin};
 use bevy::diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin};
 use bevy::prelude::*;
+use bevy::window::WindowMode;
 use bevy_egui::{egui, EguiContexts};
 use bevy_egui::egui::{FontId, RichText};
 
@@ -23,14 +24,14 @@ struct ValueChanged {
     pub ridge_noise_settings2: bool,
 }
 
-impl Default for ValueChanged{
+impl Default for ValueChanged {
     fn default() -> Self {
-        ValueChanged{
+        ValueChanged {
             perturb_strength: true,
             crater_settings: true,
             simple_noise_settings: true,
             ridge_noise_settings: true,
-            ridge_noise_settings2: true
+            ridge_noise_settings2: true,
         }
     }
 }
@@ -49,9 +50,12 @@ fn show_ui(mut contexts: EguiContexts,
            mut settings: ResMut<AsteroidSettings>,
            mut commands: Commands,
            mut value_changed: ResMut<ValueChanged>,
-           mut status_changed: Local<String>
+           mut status_changed: Local<String>,
+           mut window: Query<&mut Window>,
 ) {
     if let Some(ctx) = contexts.try_ctx_mut() {
+        let mut window = window.single_mut();
+
         egui::Window::new("Settings")
             .scroll([false, true])
             .default_height(860.)
@@ -65,26 +69,45 @@ fn show_ui(mut contexts: EguiContexts,
                             }
                         }
                     });
+                    ui.vertical(|ui| {
+                        ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                            ui.add_space(10.);
+                            let export_button = egui::Button::new(
+                                RichText::new("Export glb")
+                                    .strong()
+                                    .font(FontId::proportional(20.0))
+                                    .color(egui::Color32::WHITE))
+                                .fill(egui::Color32::from_rgb(99, 181, 74));
 
-                    ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                        ui.add_space(10f32);
-                        let export_button = egui::Button::new(
-                            RichText::new("Export glb")
-                                .strong()
-                                .font(FontId::proportional(20.0))
-                                .color(egui::Color32::WHITE))
-                            .fill(egui::Color32::from_rgb(99, 181, 74));
+                            if ui.add(export_button).clicked() {
+                                commands.trigger(ExportButtonClicked);
+                                *status_changed = "Saved to asteroid.glb".to_string();
+                            }
+                            ui.label(&*status_changed);
+                        });
+                        ui.add_space(5.);
+                        ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                            ui.add_space(10.);
+                            let export_button = egui::Button::new(
+                                RichText::new("Toggle Fullscreen")
+                                    .strong()
+                                    .font(FontId::proportional(15.0))
+                                    .color(egui::Color32::WHITE))
+                                .fill(egui::Color32::from_rgb(181, 99, 74));
 
-                        if ui.add(export_button).clicked() {
-                            commands.trigger(ExportButtonClicked);
-                            *status_changed = "Saved to asteroid.glb".to_string();
-                        }
-                        ui.label(&*status_changed);
+                            if ui.add(export_button).clicked() {
+                                window.mode = match window.mode {
+                                    WindowMode::Windowed => WindowMode::BorderlessFullscreen,
+                                    WindowMode::BorderlessFullscreen => WindowMode::Windowed,
+                                    _ => WindowMode::Windowed,
+                                }
+                            }
+                        });
                     });
                 });
 
                 let slider = |ui: &mut egui::Ui, label: &str, value: &mut f32, step: f64, range: RangeInclusive<f32>, changed: &mut bool| {
-                    ui.style_mut().spacing.slider_width = 200f32;
+                    ui.style_mut().spacing.slider_width = 200.;
 
                     let response = ui.add(
                         egui::Slider::new(value, range)
@@ -120,19 +143,19 @@ fn show_ui(mut contexts: EguiContexts,
                         drag_value(ui, "Z:", z, changed);
                     });
                 };
-                ui.add_space(10f32);
-                slider(ui, "Perturb Strength", &mut settings.peturb_strength, 0.01f64, 0.0..=1.,&mut value_changed.perturb_strength);
-                ui.add_space(10f32);
+                ui.add_space(10.);
+                slider(ui, "Perturb Strength", &mut settings.peturb_strength, 0.01f64, 0.0..=1., &mut value_changed.perturb_strength);
+                ui.add_space(10.);
 
                 if value_changed.perturb_strength
                 {
                     commands.trigger(PerturbStrengthChanged(
-                            settings.peturb_strength
+                        settings.peturb_strength
                     ));
                 }
                 value_changed.perturb_strength = false;
 
-                let spacing = 20f32;
+                let spacing = 20.;
                 let crater_settings = &mut settings.crater_settings;
 
                 egui::CollapsingHeader::new(RichText::new("Crater Settings").font(FontId::proportional(20.0)))
@@ -198,7 +221,7 @@ fn show_ui(mut contexts: EguiContexts,
                         ui.label("Offset:");
                         offset(ui, &mut ridge_noise_settings.offset_x, &mut ridge_noise_settings.offset_y, &mut ridge_noise_settings.offset_z, &mut value_changed.ridge_noise_settings);
                     });
-                ui.add_space(20f32);
+                ui.add_space(spacing);
 
                 if value_changed.ridge_noise_settings {
                     commands.trigger(RidgeNoiseSettingsChanged(
